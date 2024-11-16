@@ -48,7 +48,7 @@ class NewsStorage {
   private async initializeWithSampleData(): Promise<void> {
     if (this.initialized) return;
 
-    const now = new Date();
+    const now = new Date().toISOString();
     const sampleData = [
       {
         id: 1,
@@ -58,7 +58,7 @@ class NewsStorage {
         image_url: "https://images.unsplash.com/photo-1596451190630-186aff535bf2",
         source: "USBGF",
         category: "Tournaments",
-        published_at: now.toISOString()
+        published_at: now
       }
     ];
 
