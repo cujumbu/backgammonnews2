@@ -1,27 +1,36 @@
-import Database from 'better-sqlite3';
-import { mkdir } from 'fs/promises';
-import { join } from 'path';
+import { createDbWorker } from 'sql.js-httpvfs';
 
-const DB_DIR = './data';
-const DB_PATH = join(DB_DIR, 'news.db');
+const workerUrl = new URL(
+  'sql.js-httpvfs/dist/sqlite.worker.js',
+  import.meta.url
+);
 
-let db: Database.Database | null = null;
+const wasmUrl = new URL(
+  'sql.js-httpvfs/dist/sql-wasm.wasm',
+  import.meta.url
+);
+
+let dbWorker: any = null;
 
 export async function initDb() {
-  if (db) return db;
+  if (dbWorker) return dbWorker;
 
-  // Ensure the data directory exists
-  try {
-    await mkdir(DB_DIR, { recursive: true });
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
-      throw error;
-    }
-  }
+  dbWorker = await createDbWorker(
+    [
+      {
+        from: "inline",
+        config: {
+          serverMode: "full",
+          url: "/api/db",
+          requestChunkSize: 4096,
+        },
+      },
+    ],
+    workerUrl.toString(),
+    wasmUrl.toString()
+  );
 
-  db = new Database(DB_PATH, { verbose: console.log });
-
-  db.exec(`
+  await dbWorker.db.exec(`
     CREATE TABLE IF NOT EXISTS news_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
@@ -39,26 +48,28 @@ export async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_url ON news_items(url);
   `);
 
-  return db;
+  return dbWorker;
 }
 
 export async function getLatestNews(limit = 10) {
-  const db = await initDb();
-  return db.prepare(`
+  const worker = await initDb();
+  const result = await worker.db.exec(`
     SELECT * FROM news_items 
     ORDER BY published_at DESC 
     LIMIT ?
-  `).all(limit);
+  `, [limit]);
+  return result[0]?.values || [];
 }
 
 export async function getFeaturedNews() {
-  const db = await initDb();
-  return db.prepare(`
+  const worker = await initDb();
+  const result = await worker.db.exec(`
     SELECT * FROM news_items 
     WHERE category = 'Tournaments' 
     ORDER BY published_at DESC 
     LIMIT 1
-  `).get();
+  `);
+  return result[0]?.values?.[0] || null;
 }
 
 export async function insertNewsItem(item: {
@@ -70,12 +81,12 @@ export async function insertNewsItem(item: {
   category: string;
   published_at: string;
 }) {
-  const db = await initDb();
+  const worker = await initDb();
   try {
-    db.prepare(`
+    await worker.db.exec(`
       INSERT INTO news_items (title, content, url, image_url, source, category, published_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `, [
       item.title,
       item.content,
       item.url,
@@ -83,7 +94,7 @@ export async function insertNewsItem(item: {
       item.source,
       item.category,
       item.published_at
-    );
+    ]);
     return true;
   } catch (error) {
     if ((error as Error).message.includes('UNIQUE constraint failed')) {
