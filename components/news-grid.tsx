@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { CalendarIcon } from "lucide-react";
 import { NewsItem } from "@/lib/storage";
 
 export default function NewsGrid() {
@@ -106,7 +105,7 @@ export default function NewsGrid() {
                 </p>
                 <div className="flex items-center justify-between text-sm text-gray-500">
                   <div className="flex items-center">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <span className="mr-2">📅</span>
                     {new Date(item.published_at).toLocaleDateString()}
                   </div>
                   <span>{item.source}</span>
