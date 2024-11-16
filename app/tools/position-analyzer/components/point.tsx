@@ -20,14 +20,19 @@ export function Point({ index, value, isTop }: PointProps) {
   return (
     <div
       ref={setNodeRef}
-      className={`relative h-full ${index % 2 === 0 ? 'bg-point-dark' : 'bg-point-light'}`}
+      className={`relative h-full ${
+        index % 2 === 0 ? 'bg-point-dark' : 'bg-point-light'
+      } ${isTop ? 'triangle-down' : 'triangle-up'}`}
     >
-      <div className={`absolute inset-x-0 flex flex-col ${isTop ? 'bottom-0' : 'top-0'} items-center`}>
+      <div 
+        className={`absolute inset-x-0 ${
+          isTop ? 'bottom-0' : 'top-0'
+        } flex flex-col items-center gap-[2px]`}
+      >
         {Array.from({ length: Math.min(checkers, 5) }, (_, i) => (
           <Checker
             key={i}
-            pointIndex={index}
-            checkerIndex={i}
+            id={`checker-${index}-${i}`}
             isPlayer1={isPlayer1}
           />
         ))}
