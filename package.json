@@ -43,7 +43,6 @@
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.2",
     "@types/node": "20.6.2",
-    "@types/node-cron": "^3.0.11",
     "@types/react": "18.2.22",
     "@types/react-dom": "18.2.7",
     "@types/sqlite3": "^3.1.11",
@@ -76,6 +75,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/node-cron": "^3.0.11",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
     "eslint-plugin-react": "^7.33.2"
