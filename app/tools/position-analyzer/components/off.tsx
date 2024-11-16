@@ -6,9 +6,10 @@ import { Checker } from './checker';
 interface OffProps {
   player: 1 | 2;
   count: number;
+  isDragging?: boolean;
 }
 
-export function Off({ player, count }: OffProps) {
+export function Off({ player, count, isDragging }: OffProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `off-${player}`,
   });
@@ -20,6 +21,7 @@ export function Off({ player, count }: OffProps) {
         w-full h-24 bg-wood-dark/80 rounded-lg 
         flex flex-col items-center justify-center gap-1
         ${isOver ? 'opacity-70' : ''}
+        ${isDragging ? 'opacity-50' : ''}
       `}
     >
       {Array.from({ length: Math.min(count, 3) }, (_, i) => (
