@@ -1,15 +1,30 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove static export since we're using server-side rendering
-  images: { 
-    domains: ['images.unsplash.com']
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.redd.it',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.redd.it',
+      },
+      {
+        protocol: 'https',
+        hostname: 'preview.redd.it',
+      }
+    ]
   },
   eslint: {
     ignoreDuringBuilds: true
   },
   typescript: {
-    // Set this to false if you want production builds to abort if there's type errors
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true
   }
 }
 
