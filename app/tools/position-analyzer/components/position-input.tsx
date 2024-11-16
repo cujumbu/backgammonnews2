@@ -1,4 +1,4 @@
-interface PositionInputProps {
+export interface PositionInputProps {
   value: string;
   onChange: (value: string) => void;
   onAnalyze: () => void;
