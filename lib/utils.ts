@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { parseISO, isValid, format } from "date-fns";
+import { format } from "date-fns";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -23,22 +23,16 @@ export function parseAndValidateDate(dateStr: string | number | Date): string {
     } else if (typeof dateStr === 'number') {
       date = new Date(dateStr);
     } else {
-      // Try parsing as ISO first
-      date = parseISO(dateStr);
-      
-      // If invalid, try as regular date string
-      if (!isValid(date)) {
-        date = new Date(dateStr);
-      }
+      date = new Date(dateStr);
     }
 
-    // Validate the final date
-    if (!isValid(date)) {
+    // Validate the date
+    if (isNaN(date.getTime())) {
       throw new Error('Invalid date');
     }
 
-    // Format to ISO string
-    return format(date, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    // Format to ISO string with custom format to ensure consistency
+    return format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'");
   } catch (error) {
     // If all parsing attempts fail, return current date
     return new Date().toISOString();
