@@ -10,17 +10,45 @@
   .triangle-down {
     clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
   }
+
+  .checker-stack-1 { transform: translateY(0); }
+  .checker-stack-2 { transform: translateY(-8px); }
+  .checker-stack-3 { transform: translateY(-16px); }
+  .checker-stack-4 { transform: translateY(-24px); }
+  .checker-stack-5 { transform: translateY(-32px); }
 }
 
 .bg-wood-pattern {
   background-color: #8B4513;
   background-image: 
-    linear-gradient(30deg, #A0522D 12%, transparent 12.5%, transparent 87%, #A0522D 87.5%, #A0522D),
-    linear-gradient(150deg, #A0522D 12%, transparent 12.5%, transparent 87%, #A0522D 87.5%, #A0522D),
-    linear-gradient(30deg, #A0522D 12%, transparent 12.5%, transparent 87%, #A0522D 87.5%, #A0522D),
-    linear-gradient(150deg, #A0522D 12%, transparent 12.5%, transparent 87%, #A0522D 87.5%, #A0522D),
-    linear-gradient(60deg, #A0522D77 25%, transparent 25.5%, transparent 75%, #A0522D77 75%, #A0522D77),
-    linear-gradient(60deg, #A0522D77 25%, transparent 25.5%, transparent 75%, #A0522D77 75%, #A0522D77);
-  background-size: 80px 140px;
-  background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+    repeating-linear-gradient(
+      45deg,
+      rgba(139, 69, 19, 0.1) 0px,
+      rgba(139, 69, 19, 0.1) 2px,
+      transparent 2px,
+      transparent 4px
+    ),
+    linear-gradient(
+      to bottom,
+      #8B4513,
+      #A0522D
+    );
+}
+
+.checker-white {
+  background: radial-gradient(circle at 30% 30%, #FFFFFF 0%, #E0E0E0 60%, #BDBDBD 100%);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.checker-black {
+  background: radial-gradient(circle at 30% 30%, #424242 0%, #212121 60%, #000000 100%);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+.point-light {
+  background-color: #DEB887;
+}
+
+.point-dark {
+  background-color: #8B4513;
 }
