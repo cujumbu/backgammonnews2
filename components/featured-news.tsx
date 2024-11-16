@@ -43,7 +43,7 @@ export default function FeaturedNews() {
         <h2 className="text-2xl font-bold mb-6">Featured Story</h2>
         <div className="animate-pulse glass-panel rounded-xl overflow-hidden">
           <div className="grid md:grid-cols-2">
-            <div className="aspect-video bg-gray-200 md:aspect-auto" />
+            <div className="aspect-video bg-gray-200" />
             <div className="p-6">
               <div className="mb-2 h-4 w-24 bg-gray-200 rounded" />
               <div className="mb-3 h-8 w-3/4 bg-gray-200 rounded" />
@@ -77,7 +77,7 @@ export default function FeaturedNews() {
       <h2 className="text-2xl font-bold mb-6">Featured Story</h2>
       <div className="glass-panel rounded-xl overflow-hidden group">
         <div className="grid md:grid-cols-2">
-          <div className="relative aspect-video md:aspect-auto">
+          <div className="relative aspect-video">
             {article.image_url ? (
               <Image
                 src={article.image_url}
