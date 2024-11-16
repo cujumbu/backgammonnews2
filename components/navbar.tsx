@@ -24,8 +24,8 @@ export default function Navbar() {
             <Link href="/tournaments" className="text-gray-700 hover:text-gray-900">
               Tournaments
             </Link>
-            <Link href="/strategy" className="text-gray-700 hover:text-gray-900">
-              Strategy
+            <Link href="/tools/position-analyzer" className="text-gray-700 hover:text-gray-900">
+              Position Analyzer
             </Link>
             <Link href="/admin" className="text-gray-700 hover:text-gray-900">
               Admin
@@ -57,10 +57,10 @@ export default function Navbar() {
                 Tournaments
               </Link>
               <Link
-                href="/strategy"
+                href="/tools/position-analyzer"
                 className="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100"
               >
-                Strategy
+                Position Analyzer
               </Link>
               <Link
                 href="/admin"
