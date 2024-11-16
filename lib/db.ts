@@ -1,36 +1,22 @@
-import { createDbWorker } from 'sql.js-httpvfs';
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
+import { join } from 'path';
 
-const workerUrl = new URL(
-  'sql.js-httpvfs/dist/sqlite.worker.js',
-  import.meta.url
-);
+const DB_PATH = join(process.cwd(), 'data', 'news.db');
 
-const wasmUrl = new URL(
-  'sql.js-httpvfs/dist/sql-wasm.wasm',
-  import.meta.url
-);
+// Initialize database connection
+export async function getDb() {
+  return open({
+    filename: DB_PATH,
+    driver: sqlite3.Database
+  });
+}
 
-let dbWorker: any = null;
-
+// Initialize database schema
 export async function initDb() {
-  if (dbWorker) return dbWorker;
-
-  dbWorker = await createDbWorker(
-    [
-      {
-        from: "inline",
-        config: {
-          serverMode: "full",
-          url: "/api/db",
-          requestChunkSize: 4096,
-        },
-      },
-    ],
-    workerUrl.toString(),
-    wasmUrl.toString()
-  );
-
-  await dbWorker.db.exec(`
+  const db = await getDb();
+  
+  await db.exec(`
     CREATE TABLE IF NOT EXISTS news_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
@@ -48,30 +34,31 @@ export async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_url ON news_items(url);
   `);
 
-  return dbWorker;
+  return db;
 }
 
+// Get latest news items
 export async function getLatestNews(limit = 10) {
-  const worker = await initDb();
-  const result = await worker.db.exec(`
+  const db = await getDb();
+  return db.all(`
     SELECT * FROM news_items 
     ORDER BY published_at DESC 
     LIMIT ?
-  `, [limit]);
-  return result[0]?.values || [];
+  `, limit);
 }
 
+// Get featured news item
 export async function getFeaturedNews() {
-  const worker = await initDb();
-  const result = await worker.db.exec(`
+  const db = await getDb();
+  return db.get(`
     SELECT * FROM news_items 
     WHERE category = 'Tournaments' 
     ORDER BY published_at DESC 
     LIMIT 1
   `);
-  return result[0]?.values?.[0] || null;
 }
 
+// Insert new news item
 export async function insertNewsItem(item: {
   title: string;
   content: string;
@@ -81,9 +68,9 @@ export async function insertNewsItem(item: {
   category: string;
   published_at: string;
 }) {
-  const worker = await initDb();
+  const db = await getDb();
   try {
-    await worker.db.exec(`
+    await db.run(`
       INSERT INTO news_items (title, content, url, image_url, source, category, published_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `, [
