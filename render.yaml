@@ -10,7 +10,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: NODE_OPTIONS
-        value: --max-old-space-size=512
+        value: --max-old-space-size=512 --gc-interval=100
+      - key: NEXT_PUBLIC_MAX_NEWS_ITEMS
+        value: "50"
     autoDeploy: true
     scaling:
       minInstances: 1
@@ -21,6 +23,11 @@ services:
       requests:
         memory: 256M
         cpu: 0.1
+    healthCheckPath: /api/health
+    disk:
+      name: tmp
+      mountPath: /tmp
+      sizeGB: 0.5
 
   # Background worker for news fetching - run as a separate service with its own memory allocation
   - type: worker
@@ -32,10 +39,14 @@ services:
       - key: NODE_ENV
         value: production
       - key: NODE_OPTIONS
-        value: --max-old-space-size=256
+        value: --max-old-space-size=256 --gc-interval=100
     resources:
       limits:
         memory: 256M
       requests:
         memory: 128M
         cpu: 0.1
+    disk:
+      name: tmp
+      mountPath: /tmp
+      sizeGB: 0.5
