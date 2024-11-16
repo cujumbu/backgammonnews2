@@ -35,10 +35,6 @@ export function categorizeContent(title: string, content: string): string {
     Community: [
       'community', 'player', 'club', 'social', 'interview', 'profile',
       'spotlight', 'story', 'feature', 'member', 'group', 'meet', 'join'
-    ],
-    Software: [
-      'software', 'app', 'program', 'bot', 'ai', 'computer', 'online',
-      'digital', 'platform', 'version', 'update', 'download', 'mobile'
     ]
   };
 
