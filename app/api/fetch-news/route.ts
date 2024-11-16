@@ -24,17 +24,11 @@ async function fetchRSSFeeds() {
   const results = [];
   for (const feed of RSS_FEEDS) {
     try {
-      console.log(`Fetching ${feed.name} from ${feed.url}...`);
       const feedContent = await parser.parseURL(feed.url);
       let addedCount = 0;
       
-      console.log(`Found ${feedContent.items?.length || 0} items in ${feed.name}`);
-      
       for (const item of feedContent.items?.slice(0, 10) || []) {
-        if (!item.title || !item.link) {
-          console.log(`Skipping item in ${feed.name} - missing title or link`);
-          continue;
-        }
+        if (!item.title || !item.link) continue;
         
         const content = item.contentSnippet || item.content || '';
         const truncatedContent = content.length > 1000 ? 
@@ -57,19 +51,14 @@ async function fetchRSSFeeds() {
 
           if (success) {
             addedCount++;
-            console.log(`Added item from ${feed.name}: ${item.title}`);
-          } else {
-            console.log(`Skipped duplicate item from ${feed.name}: ${item.title}`);
           }
         } catch (itemError) {
-          console.error(`Error adding item from ${feed.name}:`, itemError);
+          // Skip failed items silently
         }
       }
       
       results.push({ source: feed.name, count: addedCount });
-      console.log(`Completed ${feed.name}: ${addedCount} items added`);
     } catch (error) {
-      console.error(`Error fetching ${feed.name}:`, error);
       results.push({ 
         source: feed.name, 
         error: error instanceof Error ? 
@@ -110,7 +99,6 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET() {
-  console.log('Starting news fetch...');
   try {
     const rssResults = await fetchRSSFeeds();
     
@@ -119,8 +107,6 @@ export async function GET() {
     if (successfulFeeds.length === 0) {
       throw new Error('Failed to fetch news from any sources');
     }
-    
-    console.log('News fetch completed:', rssResults);
 
     return NextResponse.json({
       message: 'News fetched successfully',
@@ -129,7 +115,6 @@ export async function GET() {
       }
     });
   } catch (error) {
-    console.error('Error in fetch-news route:', error);
     return NextResponse.json(
       { 
         error: error instanceof Error ? 
