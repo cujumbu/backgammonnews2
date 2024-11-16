@@ -1,13 +1,15 @@
 'use client';
 
 import { useDraggable } from '@dnd-kit/core';
+import { motion } from 'framer-motion';
 
 interface CheckerProps {
   id: string;
   isPlayer1: boolean;
+  stackPosition?: number;
 }
 
-export function Checker({ id, isPlayer1 }: CheckerProps) {
+export function Checker({ id, isPlayer1, stackPosition = 0 }: CheckerProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
   });
@@ -17,19 +19,21 @@ export function Checker({ id, isPlayer1 }: CheckerProps) {
   } : undefined;
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       style={style}
       {...listeners}
       {...attributes}
       className={`
-        w-6 h-6 rounded-full border-2 cursor-move transition-transform
-        ${isPlayer1 
-          ? 'bg-white border-gray-300 hover:bg-gray-100' 
-          : 'bg-black border-gray-700 hover:bg-gray-900'
-        }
+        absolute w-8 h-8 rounded-full cursor-move
+        ${isPlayer1 ? 'checker-white' : 'checker-black'}
         ${isDragging ? 'z-50 scale-110' : 'z-10'}
+        checker-stack-${stackPosition + 1}
       `}
+      initial={{ scale: 0.8 }}
+      animate={{ scale: isDragging ? 1.1 : 1 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      whileHover={{ scale: 1.05 }}
     />
   );
 }
