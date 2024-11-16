@@ -12,18 +12,21 @@ services:
       - key: PORT
         value: 3000
     autoDeploy: true
+    # Add memory limit and scaling configuration
+    scaling:
+      minInstances: 1
+      maxInstances: 1
+    resources:
+      limits:
+        memory: 512M # Set memory limit to 512MB
 
   # Background worker for news fetching
-  - type: worker
+  - type: cron
     name: backgammon-news-fetcher
+    schedule: "0 */6 * * *" # Run every 6 hours
     env: node
-    plan: free
     buildCommand: npm install
     startCommand: npm run fetch-news
     envVars:
       - key: NODE_ENV
         value: production
-      - key: YOUTUBE_API_KEY
-        sync: false # Means you'll set this manually in Render dashboard
-      - key: TWITTER_BEARER_TOKEN
-        sync: false
