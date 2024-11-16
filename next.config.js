@@ -27,12 +27,21 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.fallback = { fs: false, path: false };
     
-    // Add source maps for better error tracking
-    if (!config.optimization) {
-      config.optimization = {};
-    }
-    config.optimization.minimize = false;
-    config.optimization.minimizer = [];
+    // Optimize build performance
+    config.optimization = {
+      ...config.optimization,
+      moduleIds: 'deterministic',
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendor',
+            chunks: 'all',
+          },
+        },
+      },
+    };
     
     return config;
   },
@@ -44,9 +53,5 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: false
-  },
-  env: {
-    NEXT_PUBLIC_MAX_NEWS_ITEMS: '50'
-  },
-  output: 'standalone'
+  }
 }
