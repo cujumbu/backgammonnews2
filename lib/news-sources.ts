@@ -3,16 +3,6 @@ export const RSS_FEEDS = [
     url: 'https://usbgf.org/feed/',
     name: 'USBGF',
     category: 'Official'
-  },
-  {
-    url: 'https://www.chicagopoint.com/feed/',
-    name: 'Chicago Point',
-    category: 'Community'
-  },
-  {
-    url: 'https://www.bkgm.com/feed/',
-    name: 'BKGM',
-    category: 'Community'
   }
 ];
 
@@ -22,6 +12,8 @@ export const REDDIT_SOURCES = [
     category: 'Community'
   }
 ];
+
+// Removed unreliable feeds (Chicago Point, BKGM)
 
 export function categorizeContent(title: string, content: string): string {
   const keywords = {
