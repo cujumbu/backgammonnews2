@@ -7,9 +7,10 @@ interface PointProps {
   index: number;
   value: number;
   isTop: boolean;
+  isDragging?: boolean;
 }
 
-export function Point({ index, value, isTop }: PointProps) {
+export function Point({ index, value, isTop, isDragging }: PointProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `point-${index}`,
   });
@@ -25,6 +26,7 @@ export function Point({ index, value, isTop }: PointProps) {
         ${index % 2 === 0 ? 'point-dark' : 'point-light'}
         ${isTop ? 'triangle-down' : 'triangle-up'}
         ${isOver ? 'opacity-70' : ''}
+        ${isDragging ? 'opacity-50' : ''}
       `}
     >
       <div 
