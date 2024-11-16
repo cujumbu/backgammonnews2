@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Board } from '../tools/position-analyzer/components/board';
 import { Position } from '../tools/position-analyzer/lib/types';
-import { Game, Move } from './lib/game';
 import { DiceRoll } from './components/dice-roll';
 import { GameControls } from './components/game-controls';
 import { GameStatus } from './components/game-status';
@@ -21,28 +20,17 @@ const INITIAL_POSITION: Position = {
   turn: 1
 };
 
+interface Move {
+  from: number;
+  to: number;
+  isHit?: boolean;
+}
+
 export default function PlayPage() {
-  const [game, setGame] = useState(() => new Game());
   const [position, setPosition] = useState<Position>(INITIAL_POSITION);
   const [dice, setDice] = useState<number[]>([]);
-  const [availableMoves, setAvailableMoves] = useState<Move[]>([]);
-  const [selectedPoint, setSelectedPoint] = useState<number | null>(null);
   const [gameState, setGameState] = useState<'rolling' | 'moving' | 'computerTurn'>('rolling');
   const [message, setMessage] = useState<string>('Roll the dice to start');
-
-  useEffect(() => {
-    if (gameState === 'computerTurn') {
-      // Add delay to make computer's move visible
-      const timeout = setTimeout(() => {
-        const computerMove = game.getComputerMove();
-        if (computerMove) {
-          makeMove(computerMove);
-          setGameState('rolling');
-        }
-      }, 1000);
-      return () => clearTimeout(timeout);
-    }
-  }, [gameState]);
 
   const rollDice = () => {
     if (gameState !== 'rolling') return;
@@ -52,65 +40,27 @@ export default function PlayPage() {
       Math.floor(Math.random() * 6) + 1
     ];
     setDice(newDice);
-    
-    const moves = game.getAvailableMoves(newDice);
-    setAvailableMoves(moves);
-    
-    if (moves.length === 0) {
-      setMessage('No moves available');
-      setGameState('computerTurn');
-    } else {
-      setMessage('Select a point to move from');
-      setGameState('moving');
-    }
-  };
-
-  const makeMove = (move: Move) => {
-    const newPosition = game.makeMove(move);
-    setPosition(newPosition);
-    
-    const remainingMoves = game.getAvailableMoves(dice);
-    setAvailableMoves(remainingMoves);
-    
-    if (remainingMoves.length === 0) {
-      setGameState('computerTurn');
-      setMessage("Computer's turn");
-    }
-  };
-
-  const handlePointClick = (pointIndex: number) => {
-    if (gameState !== 'moving') return;
-
-    if (selectedPoint === null) {
-      // Selecting source point
-      const validMoves = availableMoves.filter(move => move.from === pointIndex);
-      if (validMoves.length > 0) {
-        setSelectedPoint(pointIndex);
-        setMessage('Select destination point');
-      }
-    } else {
-      // Selecting destination point
-      const move = availableMoves.find(
-        move => move.from === selectedPoint && move.to === pointIndex
-      );
-      
-      if (move) {
-        makeMove(move);
-        setSelectedPoint(null);
-        setMessage('Select next move or wait for computer');
-      }
-    }
+    setGameState('moving');
+    setMessage('Your turn to move');
   };
 
   const resetGame = () => {
-    setGame(new Game());
     setPosition(INITIAL_POSITION);
     setDice([]);
-    setAvailableMoves([]);
-    setSelectedPoint(null);
     setGameState('rolling');
     setMessage('Roll the dice to start');
   };
+
+  useEffect(() => {
+    if (gameState === 'computerTurn') {
+      const timeout = setTimeout(() => {
+        // Simple computer move: just reset to player's turn
+        setGameState('rolling');
+        setMessage('Your turn to roll');
+      }, 1500);
+      return () => clearTimeout(timeout);
+    }
+  }, [gameState]);
 
   return (
     <div className="max-w-4xl mx-auto py-8">
@@ -127,7 +77,7 @@ export default function PlayPage() {
       <div className="mb-8">
         <Board 
           position={position}
-          onChange={() => {}} // Board is read-only during game
+          onChange={setPosition}
         />
       </div>
 
