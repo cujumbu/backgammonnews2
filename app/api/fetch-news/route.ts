@@ -11,19 +11,28 @@ async function fetchRSSFeeds() {
     try {
       console.log(`Fetching from ${feed.name}...`);
       const feedContent = await parser.parseURL(feed.url);
+      let addedCount = 0;
       
       for (const item of feedContent.items) {
-        await addNewsItem({
-          title: item.title || '',
-          content: item.contentSnippet || item.content || '',
-          url: item.link || '',
-          image_url: extractImageUrl(item.content || ''),
-          source: feed.name,
-          category: categorizeContent(item.title || '', item.content || ''),
-          published_at: item.pubDate || new Date().toISOString()
-        });
+        if (!item.title || !item.link) continue;
+        
+        try {
+          await addNewsItem({
+            title: item.title,
+            content: item.contentSnippet || item.content || '',
+            url: item.link,
+            image_url: extractImageUrl(item.content || ''),
+            source: feed.name,
+            category: categorizeContent(item.title, item.content || ''),
+            published_at: item.pubDate || new Date().toISOString()
+          });
+          addedCount++;
+        } catch (error) {
+          console.error(`Error adding item from ${feed.name}:`, error);
+        }
       }
-      results.push({ source: feed.name, count: feedContent.items.length });
+      
+      results.push({ source: feed.name, count: addedCount });
     } catch (error) {
       console.error(`Error fetching ${feed.name}:`, error);
       results.push({ source: feed.name, error: error.message });
@@ -37,17 +46,20 @@ async function fetchRedditPosts() {
   for (const source of REDDIT_SOURCES) {
     try {
       console.log(`Fetching from Reddit r/${source.subreddit}...`);
+      
+      // Use .json extension to get the JSON feed without API authentication
       const response = await fetch(
-        `https://www.reddit.com/r/${source.subreddit}/new.json?limit=25`,
+        `https://www.reddit.com/r/${source.subreddit}/hot.json?limit=25`,
         {
           headers: {
-            'User-Agent': 'BackgammonNews/1.0'
-          }
+            'User-Agent': 'BackgammonNews/1.0 (https://backgammon-news.com)'
+          },
+          next: { revalidate: 3600 } // Cache for 1 hour
         }
       );
       
       if (!response.ok) {
-        throw new Error(`Reddit API returned ${response.status}`);
+        throw new Error(`Reddit returned ${response.status}`);
       }
       
       const data = await response.json();
@@ -57,19 +69,28 @@ async function fetchRedditPosts() {
         const { title, selftext, permalink, created_utc } = post.data;
         if (!title) continue;
         
+        // Skip posts that are just links to other subreddits
+        if (permalink.includes('/r/') && permalink !== `/r/${source.subreddit}/`) continue;
+        
         const fullRedditUrl = `https://reddit.com${permalink}`;
         const category = categorizeContent(title, selftext);
         
-        await addNewsItem({
-          title,
-          content: selftext,
-          url: fullRedditUrl,
-          source: `Reddit - r/${source.subreddit}`,
-          category,
-          published_at: new Date(created_utc * 1000).toISOString()
-        });
-        addedCount++;
+        try {
+          await addNewsItem({
+            title,
+            content: selftext,
+            url: fullRedditUrl,
+            image_url: extractImageFromRedditPost(post.data),
+            source: `Reddit - r/${source.subreddit}`,
+            category,
+            published_at: new Date(created_utc * 1000).toISOString()
+          });
+          addedCount++;
+        } catch (error) {
+          console.error(`Error adding Reddit post:`, error);
+        }
       }
+      
       results.push({ source: `Reddit - r/${source.subreddit}`, count: addedCount });
     } catch (error) {
       console.error(`Error fetching Reddit posts from r/${source.subreddit}:`, error);
@@ -83,6 +104,20 @@ function extractImageUrl(content: string): string | undefined {
   if (!content) return undefined;
   const imgMatch = content.match(/<img[^>]+src="([^">]+)"/);
   return imgMatch?.[1];
+}
+
+function extractImageFromRedditPost(post: any): string | undefined {
+  // Try to get the highest quality image from preview
+  if (post.preview?.images?.[0]?.source?.url) {
+    return post.preview.images[0].source.url.replace(/&amp;/g, '&');
+  }
+  
+  // Fallback to thumbnail if available and valid
+  if (post.thumbnail && post.thumbnail !== 'self' && post.thumbnail !== 'default') {
+    return post.thumbnail;
+  }
+  
+  return undefined;
 }
 
 export async function GET() {
