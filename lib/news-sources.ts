@@ -5,11 +5,6 @@ export const RSS_FEEDS = [
     category: 'Official'
   },
   {
-    url: 'https://ukbgf.com/blog/feed/',
-    name: 'UKBGF',
-    category: 'Official'
-  },
-  {
     url: 'https://wbgf.info/news/feed/',
     name: 'WBGF',
     category: 'Official'
