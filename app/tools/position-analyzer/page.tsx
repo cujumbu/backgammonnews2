@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { AnalysisCard } from './components/analysis-card';
 import { PositionInput } from './components/position-input';
-import { Position, PositionAnalysis, parsePosition, analyzePosition } from './lib';
+import { PositionAnalysis, parsePosition, analyzePosition } from './lib';
 
 export default function PositionAnalyzerPage() {
   const [position, setPosition] = useState('');
