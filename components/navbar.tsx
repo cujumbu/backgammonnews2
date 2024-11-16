@@ -6,6 +6,12 @@ import Link from "next/link";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
+  const navItems = [
+    { name: 'News', href: '/news' },
+    { name: 'Position Analyzer', href: '/tools/position-analyzer' },
+    { name: 'Admin', href: '/admin' }
+  ];
+
   return (
     <nav className="glass-panel sticky top-0 z-50 backdrop-blur-lg">
       <div className="container mx-auto px-4">
@@ -20,16 +26,16 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex md:items-center md:space-x-8">
-            {['News', 'Play', 'Position Analyzer', 'Admin'].map((item) => (
+            {navItems.map((item) => (
               <Link
-                key={item}
-                href={`/${item.toLowerCase().replace(' ', '-')}`}
+                key={item.name}
+                href={item.href}
                 className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200
                          relative after:absolute after:bottom-0 after:left-0 after:h-0.5 
                          after:w-0 hover:after:w-full after:bg-blue-600 
                          after:transition-all after:duration-300"
               >
-                {item}
+                {item.name}
               </Link>
             ))}
           </div>
@@ -46,15 +52,15 @@ export default function Navbar() {
         {isOpen && (
           <div className="md:hidden animate-fade-in">
             <div className="space-y-2 px-2 pb-4 pt-2">
-              {['News', 'Play', 'Position Analyzer', 'Admin'].map((item) => (
+              {navItems.map((item) => (
                 <Link
-                  key={item}
-                  href={`/${item.toLowerCase().replace(' ', '-')}`}
+                  key={item.name}
+                  href={item.href}
                   className="block rounded-lg px-3 py-2 text-gray-700 hover:bg-blue-50 
                            hover:text-blue-600 transition-colors duration-200"
                   onClick={() => setIsOpen(false)}
                 >
-                  {item}
+                  {item.name}
                 </Link>
               ))}
             </div>
