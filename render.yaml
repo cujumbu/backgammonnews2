@@ -1,4 +1,5 @@
 services:
+  # Main web service
   - type: web
     name: backgammon-news
     env: node
@@ -11,3 +12,18 @@ services:
       - key: PORT
         value: 3000
     autoDeploy: true
+
+  # Background worker for news fetching
+  - type: worker
+    name: backgammon-news-fetcher
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run fetch-news
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: YOUTUBE_API_KEY
+        sync: false # Means you'll set this manually in Render dashboard
+      - key: TWITTER_BEARER_TOKEN
+        sync: false
