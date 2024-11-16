@@ -5,14 +5,14 @@ export const RSS_FEEDS = [
     category: 'Official'
   },
   {
-    url: 'https://backgammongalaxy.com/feed',
-    name: 'Backgammon Galaxy',
+    url: 'https://www.chicagopoint.com/feed/',
+    name: 'Chicago Point',
     category: 'Community'
   },
   {
-    url: 'https://www.worldbackgammonfederation.org/feed',
-    name: 'World Backgammon Federation',
-    category: 'Official'
+    url: 'https://www.bkgm.com/feed/',
+    name: 'BKGM',
+    category: 'Community'
   }
 ];
 
