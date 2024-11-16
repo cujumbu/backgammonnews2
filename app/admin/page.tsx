@@ -5,11 +5,25 @@ import { Button } from "@/components/ui/button";
 import { RefreshCcw, CheckCircle, XCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
+interface FetchResult {
+  source: string;
+  count?: number;
+  error?: string;
+}
+
+interface NewsResponse {
+  message: string;
+  results?: {
+    rss: FetchResult[];
+    reddit: FetchResult[];
+  };
+}
+
 export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
-  const [details, setDetails] = useState<any>(null);
+  const [details, setDetails] = useState<NewsResponse["results"] | null>(null);
 
   async function refreshNews() {
     setIsLoading(true);
@@ -22,7 +36,7 @@ export default function AdminPage() {
       
       if (!response.ok) {
         const text = await response.text();
-        let errorMessage;
+        let errorMessage: string;
         try {
           const data = JSON.parse(text);
           errorMessage = data.message || 'Failed to fetch news';
@@ -32,13 +46,13 @@ export default function AdminPage() {
         throw new Error(errorMessage);
       }
 
-      const data = await response.json();
+      const data: NewsResponse = await response.json();
       setStatus("success");
       setMessage(data.message || "News successfully updated");
       setDetails(data.results);
     } catch (error) {
       setStatus("error");
-      setMessage(error.message);
+      setMessage(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +95,7 @@ export default function AdminPage() {
             <div>
               <h3 className="font-medium mb-2">RSS Feeds:</h3>
               <ul className="space-y-1 text-sm">
-                {details.rss.map((result: any, i: number) => (
+                {details.rss.map((result, i) => (
                   <li key={i} className={result.error ? "text-red-500" : "text-green-500"}>
                     {result.source}: {result.error ? result.error : `${result.count} items fetched`}
                   </li>
@@ -92,7 +106,7 @@ export default function AdminPage() {
             <div>
               <h3 className="font-medium mb-2">Reddit:</h3>
               <ul className="space-y-1 text-sm">
-                {details.reddit.map((result: any, i: number) => (
+                {details.reddit.map((result, i) => (
                   <li key={i} className={result.error ? "text-red-500" : "text-green-500"}>
                     {result.source}: {result.error ? result.error : `${result.count} items fetched`}
                   </li>
