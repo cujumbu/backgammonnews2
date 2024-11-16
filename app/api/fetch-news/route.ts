@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import Parser from 'rss-parser';
 import { RSS_FEEDS, REDDIT_SOURCES, categorizeContent } from '@/lib/news-sources';
 import { addNewsItem } from '@/lib/storage';
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 
 const parser = new Parser({
   timeout: 5000,
@@ -112,6 +112,10 @@ function extractImageFromRedditPost(post: any): string | undefined {
   return post.thumbnail && post.thumbnail !== 'self' && post.thumbnail !== 'default' ?
     post.thumbnail : undefined;
 }
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
