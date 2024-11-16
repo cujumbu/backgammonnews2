@@ -37,7 +37,7 @@ async function fetchRSSFeeds() {
           image_url: extractImageUrl(item.content || ''),
           source: feed.name,
           category: categorizeContent(item.title, content),
-          published_at: new Date(item.pubDate || Date.now())
+          published_at: new Date(item.pubDate || Date.now()).toISOString()
         });
 
         if (success) addedCount++;
@@ -90,7 +90,7 @@ async function fetchRedditPosts() {
           image_url: extractImageFromRedditPost(post.data),
           source: `Reddit - r/${source.subreddit}`,
           category: categorizeContent(title, selftext),
-          published_at: new Date(created_utc * 1000)
+          published_at: new Date(created_utc * 1000).toISOString()
         });
 
         if (success) addedCount++;
