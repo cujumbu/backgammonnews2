@@ -27,12 +27,12 @@ export function parseAndValidateDate(dateStr: string | number | Date): string {
 
     // Validate the date
     if (isNaN(date.getTime())) {
-      throw new Error('Invalid date');
+      return new Date().toISOString();
     }
 
     // Format to ISO string
     return date.toISOString();
-  } catch (error) {
+  } catch {
     // If all parsing attempts fail, return current date
     return new Date().toISOString();
   }
