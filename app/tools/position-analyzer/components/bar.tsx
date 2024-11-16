@@ -6,9 +6,10 @@ import { Checker } from './checker';
 interface BarProps {
   player: 1 | 2;
   count: number;
+  isDragging?: boolean;
 }
 
-export function Bar({ player, count }: BarProps) {
+export function Bar({ player, count, isDragging }: BarProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `bar-${player}`,
   });
@@ -20,6 +21,7 @@ export function Bar({ player, count }: BarProps) {
         w-10 h-full bg-wood-dark/80 rounded-lg 
         flex flex-col items-center justify-center gap-1
         ${isOver ? 'opacity-70' : ''}
+        ${isDragging ? 'opacity-50' : ''}
       `}
     >
       {Array.from({ length: Math.min(count, 3) }, (_, i) => (
