@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { LRUCache } from 'lru-cache';
 
 const NewsItemSchema = z.object({
   id: z.number(),
@@ -17,11 +18,20 @@ const MAX_ITEMS = 100;
 
 class NewsStorage {
   private static instance: NewsStorage;
-  private cache: NewsItem[] = [];
+  private cache: LRUCache<number, NewsItem>;
   private initialized = false;
   private initPromise: Promise<void> | null = null;
 
   private constructor() {
+    this.cache = new LRUCache({
+      max: MAX_ITEMS,
+      maxSize: 5000, // Limit total size
+      sizeCalculation: (value, key) => {
+        // Rough estimation of item size in bytes
+        return JSON.stringify(value).length;
+      },
+      ttl: 1000 * 60 * 60 * 24, // 24 hour TTL
+    });
     this.initPromise = this.initializeWithSampleData();
   }
 
@@ -36,11 +46,11 @@ class NewsStorage {
     if (this.initialized) return;
 
     const now = new Date();
-    this.cache = [
+    const sampleData = [
       {
         id: 1,
         title: "Nordic Open 2024 Announced",
-        content: "The Nordic Open 2024 has been announced for April 15-18 in Copenhagen, Denmark. This prestigious tournament attracts players from around the world.",
+        content: "The Nordic Open 2024 has been announced for April 15-18 in Copenhagen, Denmark.",
         url: "https://example.com/nordic-open-2024",
         image_url: "https://images.unsplash.com/photo-1596451190630-186aff535bf2",
         source: "USBGF",
@@ -50,7 +60,7 @@ class NewsStorage {
       {
         id: 2,
         title: "Advanced Opening Strategies",
-        content: "Learn about the most effective opening moves in backgammon and how to use them to gain an early advantage.",
+        content: "Learn about the most effective opening moves in backgammon.",
         url: "https://example.com/opening-strategies",
         image_url: "https://images.unsplash.com/photo-1611159063981-b8c8c4301869",
         source: "Backgammon Experts",
@@ -58,6 +68,8 @@ class NewsStorage {
         published_at: new Date(now.getTime() - 86400000).toISOString()
       }
     ];
+
+    sampleData.forEach(item => this.cache.set(item.id, item));
     this.initialized = true;
   }
 
@@ -69,19 +81,19 @@ class NewsStorage {
 
   public async getAll(): Promise<NewsItem[]> {
     await this.ensureInitialized();
-    return [...this.cache];
+    return Array.from(this.cache.values());
   }
 
   public async getLatest(limit = 10): Promise<NewsItem[]> {
     await this.ensureInitialized();
-    return this.cache
+    return Array.from(this.cache.values())
       .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
       .slice(0, limit);
   }
 
   public async getFeatured(): Promise<NewsItem | null> {
     await this.ensureInitialized();
-    return this.cache
+    return Array.from(this.cache.values())
       .filter(item => item.category === 'Tournaments')
       .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())[0] || null;
   }
@@ -101,18 +113,13 @@ class NewsStorage {
       return false;
     }
 
-    if (!this.cache.some(existing => existing.url === item.url)) {
-      this.cache.push(validated.data);
-      await this.pruneOldItems();
+    // Check if URL already exists
+    const exists = Array.from(this.cache.values()).some(existing => existing.url === item.url);
+    if (!exists) {
+      this.cache.set(newItem.id, validated.data);
       return true;
     }
     return false;
-  }
-
-  private async pruneOldItems(): Promise<void> {
-    this.cache = this.cache
-      .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
-      .slice(0, MAX_ITEMS);
   }
 }
 
