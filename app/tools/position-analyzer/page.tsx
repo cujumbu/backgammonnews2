@@ -11,15 +11,28 @@ export default function PositionAnalyzerPage() {
   const [position, setPosition] = useState('');
   const [analysis, setAnalysis] = useState<PositionAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [debug, setDebug] = useState<string | null>(null);
 
   const handleAnalyze = () => {
     try {
+      console.log('Analyzing position:', position);
       setError(null);
+      setDebug(null);
+
       const parsedPosition = parsePosition(position);
+      console.log('Parsed position:', parsedPosition);
+
       const result = analyzePosition(parsedPosition);
+      console.log('Analysis result:', result);
+
       setAnalysis(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to analyze position');
+      console.error('Position analysis error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to analyze position';
+      const debugInfo = err instanceof Error ? err.stack : String(err);
+      
+      setError(errorMessage);
+      setDebug(debugInfo);
       setAnalysis(null);
     }
   };
@@ -33,6 +46,7 @@ export default function PositionAnalyzerPage() {
         onChange={setPosition}
         onAnalyze={handleAnalyze}
         error={error}
+        debug={debug}
       />
 
       {analysis && (
