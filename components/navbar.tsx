@@ -7,34 +7,36 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="border-b bg-white">
+    <nav className="glass-panel sticky top-0 z-50 backdrop-blur-lg">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
-              <span className="text-2xl">🎲</span>
-              <span className="text-xl font-bold">BackgammonNews</span>
+            <Link href="/" className="flex items-center space-x-2 group">
+              <span className="text-2xl transform group-hover:rotate-180 transition-transform duration-500">🎲</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                BackgammonNews
+              </span>
             </Link>
           </div>
 
-          <div className="hidden md:flex md:items-center md:space-x-6">
-            <Link href="/news" className="text-gray-700 hover:text-gray-900">
-              News
-            </Link>
-            <Link href="/play" className="text-gray-700 hover:text-gray-900">
-              Play
-            </Link>
-            <Link href="/tools/position-analyzer" className="text-gray-700 hover:text-gray-900">
-              Position Analyzer
-            </Link>
-            <Link href="/admin" className="text-gray-700 hover:text-gray-900">
-              Admin
-            </Link>
+          <div className="hidden md:flex md:items-center md:space-x-8">
+            {['News', 'Play', 'Position Analyzer', 'Admin'].map((item) => (
+              <Link
+                key={item}
+                href={`/${item.toLowerCase().replace(' ', '-')}`}
+                className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200
+                         relative after:absolute after:bottom-0 after:left-0 after:h-0.5 
+                         after:w-0 hover:after:w-full after:bg-blue-600 
+                         after:transition-all after:duration-300"
+              >
+                {item}
+              </Link>
+            ))}
           </div>
 
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
             aria-label="Toggle menu"
           >
             <span className="text-2xl">{isOpen ? '✕' : '☰'}</span>
@@ -42,32 +44,19 @@ export default function Navbar() {
         </div>
 
         {isOpen && (
-          <div className="md:hidden">
-            <div className="space-y-4 px-2 pb-4 pt-2">
-              <Link
-                href="/news"
-                className="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100"
-              >
-                News
-              </Link>
-              <Link
-                href="/play"
-                className="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100"
-              >
-                Play
-              </Link>
-              <Link
-                href="/tools/position-analyzer"
-                className="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100"
-              >
-                Position Analyzer
-              </Link>
-              <Link
-                href="/admin"
-                className="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100"
-              >
-                Admin
-              </Link>
+          <div className="md:hidden animate-fade-in">
+            <div className="space-y-2 px-2 pb-4 pt-2">
+              {['News', 'Play', 'Position Analyzer', 'Admin'].map((item) => (
+                <Link
+                  key={item}
+                  href={`/${item.toLowerCase().replace(' ', '-')}`}
+                  className="block rounded-lg px-3 py-2 text-gray-700 hover:bg-blue-50 
+                           hover:text-blue-600 transition-colors duration-200"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item}
+                </Link>
+              ))}
             </div>
           </div>
         )}
