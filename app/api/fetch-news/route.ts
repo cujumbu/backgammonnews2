@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import Parser from 'rss-parser';
+import fetch from 'cross-fetch';
 import { RSS_FEEDS, REDDIT_SOURCES, categorizeContent } from '@/lib/news-sources';
 import { addNewsItem } from '@/lib/storage';
-import fetch from 'cross-fetch';
+import { parseAndValidateDate } from '@/lib/utils';
 
 const parser = new Parser({
   timeout: 5000,
@@ -27,22 +28,28 @@ async function fetchRSSFeeds() {
         const truncatedContent = content.length > 1000 ? 
           content.substring(0, 1000) + '...' : content;
         
-        await addNewsItem({
+        const published_at = parseAndValidateDate(item.pubDate || new Date());
+        
+        const success = await addNewsItem({
           title: item.title,
           content: truncatedContent,
           url: item.link,
           image_url: extractImageUrl(item.content || ''),
           source: feed.name,
           category: categorizeContent(item.title, content),
-          published_at: item.pubDate || new Date().toISOString()
+          published_at
         });
-        addedCount++;
+
+        if (success) addedCount++;
       }
       
       results.push({ source: feed.name, count: addedCount });
-    } catch (err) {
-      const error = err as Error;
-      results.push({ source: feed.name, error: error.message });
+    } catch (error) {
+      console.error(`Error fetching ${feed.name}:`, error);
+      results.push({ 
+        source: feed.name, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
     }
   }
   return results;
@@ -56,7 +63,7 @@ async function fetchRedditPosts() {
         `https://www.reddit.com/r/${source.subreddit}/hot.json?limit=10`,
         {
           headers: {
-            'User-Agent': 'BackgammonNews/1.0',
+            'User-Agent': 'BackgammonNews/1.0 (StackBlitz)',
             'Accept': 'application/json'
           }
         }
@@ -76,23 +83,27 @@ async function fetchRedditPosts() {
         const truncatedContent = selftext.length > 1000 ? 
           selftext.substring(0, 1000) + '...' : selftext;
         
-        await addNewsItem({
+        const published_at = parseAndValidateDate(created_utc * 1000);
+        
+        const success = await addNewsItem({
           title,
           content: truncatedContent,
           url: `https://reddit.com${permalink}`,
           image_url: extractImageFromRedditPost(post.data),
           source: `Reddit - r/${source.subreddit}`,
           category: categorizeContent(title, selftext),
-          published_at: new Date(created_utc * 1000).toISOString()
+          published_at
         });
-        addedCount++;
+
+        if (success) addedCount++;
       }
       
       results.push({ source: `Reddit - r/${source.subreddit}`, count: addedCount });
     } catch (error) {
+      console.error(`Error fetching Reddit r/${source.subreddit}:`, error);
       results.push({ 
         source: `Reddit - r/${source.subreddit}`, 
-        error: error instanceof Error ? error.message : 'Failed to fetch Reddit posts' 
+        error: error instanceof Error ? error.message : 'Unknown error' 
       });
     }
   }
@@ -132,6 +143,7 @@ export async function GET() {
       }
     });
   } catch (error) {
+    console.error('Error in fetch-news route:', error);
     return NextResponse.json(
       { 
         error: error instanceof Error ? error.message : 'Failed to fetch news' 
