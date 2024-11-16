@@ -66,5 +66,13 @@
     "typescript": "5.2.2",
     "vaul": "^0.9.0",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node-cron": "^3.0.11",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
