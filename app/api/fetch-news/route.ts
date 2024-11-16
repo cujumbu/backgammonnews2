@@ -5,11 +5,18 @@ import { addNewsItem } from '@/lib/storage';
 import { parseAndValidateDate } from '@/lib/utils';
 
 const parser = new Parser({
-  timeout: 5000,
-  maxRedirects: 3,
+  timeout: 10000, // Increased timeout to 10 seconds
+  maxRedirects: 5,
   headers: {
-    'User-Agent': 'BackgammonNews/1.0',
-    'Accept': 'application/rss+xml, application/xml'
+    'User-Agent': 'BackgammonNews/1.0 (https://backgammon-news.com)',
+    'Accept': 'application/rss+xml, application/xml, text/xml, */*'
+  },
+  customFields: {
+    item: [
+      ['media:content', 'media'],
+      ['media:thumbnail', 'thumbnail'],
+      ['enclosure', 'enclosure']
+    ]
   }
 });
 
@@ -36,11 +43,13 @@ async function fetchRSSFeeds() {
         const published_at = parseAndValidateDate(item.pubDate || new Date());
         
         try {
+          const imageUrl = extractImageUrl(item) || undefined;
+          
           const success = await addNewsItem({
             title: item.title,
             content: truncatedContent,
             url: item.link,
-            image_url: extractImageUrl(item.content || ''),
+            image_url: imageUrl,
             source: feed.name,
             category: categorizeContent(item.title, content),
             published_at
@@ -72,10 +81,28 @@ async function fetchRSSFeeds() {
   return results;
 }
 
-function extractImageUrl(content: string): string | undefined {
-  if (!content) return undefined;
-  const imgMatch = content.match(/<img[^>]+src="([^">]+)"/);
-  return imgMatch?.[1];
+function extractImageUrl(item: any): string | undefined {
+  // Try different possible image sources in order of preference
+  if (item.media?.$.url) {
+    return item.media.$.url;
+  }
+  
+  if (item.thumbnail?.$.url) {
+    return item.thumbnail.$.url;
+  }
+  
+  if (item.enclosure?.url && item.enclosure.type?.startsWith('image/')) {
+    return item.enclosure.url;
+  }
+  
+  if (item.content) {
+    const imgMatch = item.content.match(/<img[^>]+src="([^">]+)"/);
+    if (imgMatch) {
+      return imgMatch[1];
+    }
+  }
+  
+  return undefined;
 }
 
 export const runtime = 'nodejs';
@@ -86,6 +113,13 @@ export async function GET() {
   console.log('Starting news fetch...');
   try {
     const rssResults = await fetchRSSFeeds();
+    
+    // Check if we got any successful results
+    const successfulFeeds = rssResults.filter(result => !result.error);
+    if (successfulFeeds.length === 0) {
+      throw new Error('Failed to fetch news from any sources');
+    }
+    
     console.log('News fetch completed:', rssResults);
 
     return NextResponse.json({
