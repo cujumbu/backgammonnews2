@@ -1,22 +1,22 @@
-import Database from 'better-sqlite3';
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
 import { join } from 'path';
 
 const DB_PATH = join(process.cwd(), 'data', 'news.db');
 
-let db: Database.Database | null = null;
-
-export function getDb() {
-  if (!db) {
-    db = new Database(DB_PATH, { verbose: console.log });
-    initDb();
-  }
-  return db;
+// Initialize database connection
+export async function getDb() {
+  return open({
+    filename: DB_PATH,
+    driver: sqlite3.Database
+  });
 }
 
-export function initDb() {
-  const db = getDb();
+// Initialize database schema
+export async function initDb() {
+  const db = await getDb();
   
-  db.exec(`
+  await db.exec(`
     CREATE TABLE IF NOT EXISTS news_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
@@ -37,26 +37,29 @@ export function initDb() {
   return db;
 }
 
-export function getLatestNews(limit = 10) {
-  const db = getDb();
-  return db.prepare(`
+// Get latest news items
+export async function getLatestNews(limit = 10) {
+  const db = await getDb();
+  return db.all(`
     SELECT * FROM news_items 
     ORDER BY published_at DESC 
     LIMIT ?
-  `).all(limit);
+  `, limit);
 }
 
-export function getFeaturedNews() {
-  const db = getDb();
-  return db.prepare(`
+// Get featured news item
+export async function getFeaturedNews() {
+  const db = await getDb();
+  return db.get(`
     SELECT * FROM news_items 
     WHERE category = 'Tournaments' 
     ORDER BY published_at DESC 
     LIMIT 1
-  `).get();
+  `);
 }
 
-export function insertNewsItem(item: {
+// Insert new news item
+export async function insertNewsItem(item: {
   title: string;
   content: string;
   url: string;
@@ -65,12 +68,12 @@ export function insertNewsItem(item: {
   category: string;
   published_at: string;
 }) {
-  const db = getDb();
+  const db = await getDb();
   try {
-    db.prepare(`
+    await db.run(`
       INSERT INTO news_items (title, content, url, image_url, source, category, published_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `, [
       item.title,
       item.content,
       item.url,
@@ -78,7 +81,7 @@ export function insertNewsItem(item: {
       item.source,
       item.category,
       item.published_at
-    );
+    ]);
     return true;
   } catch (error) {
     if ((error as Error).message.includes('UNIQUE constraint failed')) {
