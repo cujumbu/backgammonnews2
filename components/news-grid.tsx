@@ -1,10 +1,6 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { CalendarIcon } from "lucide-react";
 import Image from "next/image";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CalendarIcon } from "lucide-react";
 import { NewsItem } from "@/lib/storage";
 
 export default function NewsGrid() {
@@ -46,22 +42,20 @@ export default function NewsGrid() {
         <h2 className="mb-6 text-2xl font-bold">Latest News</h2>
         <div className="grid gap-6">
           {[...Array(6)].map((_, i) => (
-            <Card key={i} className="overflow-hidden">
+            <div key={i} className="animate-pulse overflow-hidden rounded-lg border">
               <div className="grid md:grid-cols-2">
-                <div className="relative aspect-video md:aspect-square">
-                  <Skeleton className="h-full w-full" />
-                </div>
+                <div className="aspect-video bg-gray-200 md:aspect-square" />
                 <div className="p-6">
-                  <Skeleton className="mb-2 h-4 w-24" />
-                  <Skeleton className="mb-3 h-6 w-3/4" />
-                  <Skeleton className="mb-4 h-20 w-full" />
+                  <div className="mb-2 h-4 w-24 bg-gray-200 rounded" />
+                  <div className="mb-3 h-6 w-3/4 bg-gray-200 rounded" />
+                  <div className="mb-4 h-20 w-full bg-gray-200 rounded" />
                   <div className="flex items-center justify-between">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-24" />
+                    <div className="h-4 w-32 bg-gray-200 rounded" />
+                    <div className="h-4 w-24 bg-gray-200 rounded" />
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       </div>
@@ -72,11 +66,11 @@ export default function NewsGrid() {
     return (
       <div>
         <h2 className="mb-6 text-2xl font-bold">Latest News</h2>
-        <Card className="p-6">
-          <p className="text-muted-foreground">
+        <div className="rounded-lg border p-6">
+          <p className="text-gray-600">
             {error || 'No news articles available.'}
           </p>
-        </Card>
+        </div>
       </div>
     );
   }
@@ -86,7 +80,7 @@ export default function NewsGrid() {
       <h2 className="mb-6 text-2xl font-bold">Latest News</h2>
       <div className="grid gap-6">
         {news.map((item) => (
-          <Card key={item.id} className="overflow-hidden">
+          <div key={item.id} className="overflow-hidden rounded-lg border">
             <div className="grid md:grid-cols-2">
               <div className="relative aspect-video md:aspect-square">
                 {item.image_url && (
@@ -99,16 +93,16 @@ export default function NewsGrid() {
                 )}
               </div>
               <div className="p-6">
-                <div className="mb-2 text-sm font-medium text-blue-600 dark:text-blue-400">
+                <div className="mb-2 text-sm font-medium text-blue-600">
                   {item.category}
                 </div>
                 <h3 className="mb-3 text-xl font-bold">{item.title}</h3>
-                <p className="mb-4 text-sm text-muted-foreground">
+                <p className="mb-4 text-sm text-gray-600">
                   {item.content && item.content.length > 150
                     ? `${item.content.substring(0, 150)}...`
                     : item.content || 'No content available'}
                 </p>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <div className="flex items-center justify-between text-sm text-gray-500">
                   <div className="flex items-center">
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {new Date(item.published_at).toLocaleDateString()}
@@ -117,7 +111,7 @@ export default function NewsGrid() {
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
     </div>
