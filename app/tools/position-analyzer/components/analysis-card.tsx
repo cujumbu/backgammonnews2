@@ -1,4 +1,4 @@
-export interface AnalysisCardProps {
+interface AnalysisCardProps {
   title: string;
   children: React.ReactNode;
 }
