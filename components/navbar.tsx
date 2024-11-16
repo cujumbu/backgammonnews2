@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { DicesIcon, MenuIcon, X } from "lucide-react";
+import { DicesIcon, MenuIcon, X, Settings } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 
 export default function Navbar() {
@@ -32,6 +32,13 @@ export default function Navbar() {
             </Link>
             <Link href="/tools" className="text-foreground/80 hover:text-foreground">
               Tools
+            </Link>
+            <Link 
+              href="/admin" 
+              className="text-foreground/80 hover:text-foreground"
+            >
+              <Settings className="h-5 w-5" />
+              <span className="sr-only">Admin</span>
             </Link>
             <ThemeToggle />
           </div>
@@ -78,6 +85,12 @@ export default function Navbar() {
                 className="block rounded-md px-3 py-2 text-foreground/80 hover:bg-accent hover:text-foreground"
               >
                 Tools
+              </Link>
+              <Link
+                href="/admin"
+                className="block rounded-md px-3 py-2 text-foreground/80 hover:bg-accent hover:text-foreground"
+              >
+                Admin
               </Link>
               <div className="px-3 py-2">
                 <ThemeToggle />
