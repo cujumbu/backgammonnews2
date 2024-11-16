@@ -2,180 +2,147 @@ import cron from 'node-cron';
 import Parser from 'rss-parser';
 import * as cheerio from 'cheerio';
 import fetch from 'node-fetch';
-import { 
-  RSS_FEEDS, 
-  REDDIT_SOURCES, 
-  YOUTUBE_CHANNELS,
-  categorizeContent 
-} from '../lib/news-sources';
+import { RSS_FEEDS, REDDIT_SOURCES, categorizeContent } from '../lib/news-sources';
 import { addNewsItem } from '../lib/storage';
 
-const parser = new Parser();
+const parser = new Parser({
+  timeout: 5000,
+  maxRedirects: 3,
+  headers: {
+    'User-Agent': 'BackgammonNews/1.0',
+    'Accept': 'application/rss+xml, application/xml'
+  }
+});
 
-// YouTube API key would be needed here
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+let isRunning = false;
 
 async function fetchRSSFeeds() {
+  const results = [];
   for (const feed of RSS_FEEDS) {
     try {
-      console.log(`Fetching from ${feed.name}...`);
       const feedContent = await parser.parseURL(feed.url);
+      let addedCount = 0;
       
-      for (const item of feedContent.items) {
-        const category = categorizeContent(item.title || '', item.content || '');
+      for (const item of feedContent.items?.slice(0, 10) || []) {
+        if (!item.title || !item.link) continue;
+        
+        const content = item.contentSnippet || item.content || '';
+        const truncatedContent = content.length > 1000 ? 
+          content.substring(0, 1000) + '...' : content;
         
         await addNewsItem({
-          title: item.title || '',
-          content: item.contentSnippet || item.content || '',
-          url: item.link || '',
+          title: item.title,
+          content: truncatedContent,
+          url: item.link,
           image_url: extractImageUrl(item.content || ''),
           source: feed.name,
-          category,
+          category: categorizeContent(item.title, content),
           published_at: item.pubDate || new Date().toISOString()
         });
+        addedCount++;
       }
       
-      console.log(`✓ Processed ${feedContent.items.length} items from ${feed.name}`);
+      results.push({ source: feed.name, count: addedCount });
     } catch (error) {
       console.error(`Error fetching ${feed.name}:`, error);
+      results.push({ source: feed.name, error: error.message });
     }
   }
+  return results;
 }
 
 async function fetchRedditPosts() {
+  const results = [];
   for (const source of REDDIT_SOURCES) {
     try {
-      console.log(`Fetching from Reddit r/${source.subreddit}...`);
       const response = await fetch(
-        `https://www.reddit.com/r/${source.subreddit}/new.json?limit=25`,
+        `https://www.reddit.com/r/${source.subreddit}/hot.json?limit=10`,
         {
           headers: {
-            'User-Agent': 'BackgammonNews/1.0'
+            'User-Agent': 'BackgammonNews/1.0',
+            'Accept': 'application/json'
           }
         }
       );
       
       if (!response.ok) {
-        throw new Error(`Reddit API returned ${response.status}`);
+        throw new Error(`Reddit returned ${response.status}`);
       }
       
       const data = await response.json();
+      let addedCount = 0;
       
-      for (const post of data.data.children) {
-        const { title, selftext, url, created_utc, permalink } = post.data;
+      for (const post of data.data?.children?.slice(0, 5) || []) {
+        const { title, selftext, permalink, created_utc } = post.data;
+        if (!title) continue;
         
-        // Skip posts that are just links to other subreddits
-        if (!title || url.includes('/r/')) continue;
-        
-        const category = categorizeContent(title, selftext);
-        const fullRedditUrl = `https://reddit.com${permalink}`;
+        const truncatedContent = selftext.length > 1000 ? 
+          selftext.substring(0, 1000) + '...' : selftext;
         
         await addNewsItem({
           title,
-          content: selftext,
-          url: fullRedditUrl,
+          content: truncatedContent,
+          url: `https://reddit.com${permalink}`,
           image_url: extractImageFromRedditPost(post.data),
           source: `Reddit - r/${source.subreddit}`,
-          category,
+          category: categorizeContent(title, selftext),
           published_at: new Date(created_utc * 1000).toISOString()
         });
+        addedCount++;
       }
       
-      console.log(`✓ Processed Reddit posts from r/${source.subreddit}`);
+      results.push({ source: `Reddit - r/${source.subreddit}`, count: addedCount });
     } catch (error) {
-      console.error(`Error fetching Reddit posts from r/${source.subreddit}:`, error);
+      console.error(`Error fetching Reddit r/${source.subreddit}:`, error);
+      results.push({ source: `Reddit - r/${source.subreddit}`, error: error.message });
     }
   }
-}
-
-async function fetchYouTubeVideos() {
-  if (!YOUTUBE_API_KEY) {
-    console.log('Skipping YouTube fetch - no API key provided');
-    return;
-  }
-
-  for (const channel of YOUTUBE_CHANNELS) {
-    try {
-      console.log(`Fetching videos from ${channel.name}...`);
-      const response = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${channel.id}&part=snippet,id&order=date&maxResults=10`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`YouTube API returned ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      for (const item of data.items) {
-        if (item.id.kind !== 'youtube#video') continue;
-        
-        const videoUrl = `https://www.youtube.com/watch?v=${item.id.videoId}`;
-        const thumbnailUrl = item.snippet.thumbnails.high?.url;
-        
-        await addNewsItem({
-          title: item.snippet.title,
-          content: item.snippet.description,
-          url: videoUrl,
-          image_url: thumbnailUrl,
-          source: channel.name,
-          category: channel.category,
-          published_at: item.snippet.publishedAt
-        });
-      }
-      
-      console.log(`✓ Processed videos from ${channel.name}`);
-    } catch (error) {
-      console.error(`Error fetching YouTube videos from ${channel.name}:`, error);
-    }
-  }
+  return results;
 }
 
 function extractImageUrl(content: string): string | undefined {
   if (!content) return undefined;
-  
-  // Try to extract from HTML content
   const $ = cheerio.load(content);
   const img = $('img').first();
-  if (img.length) return img.attr('src');
-  
-  // Try to extract from markdown
-  const mdImageMatch = content.match(/!\[.*?\]\((.*?)\)/);
-  if (mdImageMatch) return mdImageMatch[1];
-  
-  return undefined;
+  return img.length ? img.attr('src') : undefined;
 }
 
 function extractImageFromRedditPost(post: any): string | undefined {
   if (post.preview?.images?.[0]?.source?.url) {
-    return post.preview.images[0].source.url;
+    return post.preview.images[0].source.url.replace(/&amp;/g, '&');
   }
-  
-  if (post.thumbnail && post.thumbnail !== 'self' && post.thumbnail !== 'default') {
-    return post.thumbnail;
-  }
-  
-  return undefined;
+  return post.thumbnail && post.thumbnail !== 'self' && post.thumbnail !== 'default' ?
+    post.thumbnail : undefined;
 }
 
 async function runNewsFetcher() {
+  if (isRunning) {
+    console.log('News fetcher already running, skipping...');
+    return;
+  }
+
+  isRunning = true;
   console.log('Starting news fetch:', new Date().toISOString());
   
   try {
-    await Promise.all([
+    const [rssResults, redditResults] = await Promise.all([
       fetchRSSFeeds(),
-      fetchRedditPosts(),
-      fetchYouTubeVideos()
+      fetchRedditPosts()
     ]);
     
-    console.log('News fetch completed:', new Date().toISOString());
+    console.log('News fetch completed:', {
+      rss: rssResults,
+      reddit: redditResults
+    });
   } catch (error) {
     console.error('Error in news fetcher:', error);
+  } finally {
+    isRunning = false;
   }
 }
 
 // Run every 6 hours
 cron.schedule('0 */6 * * *', runNewsFetcher);
 
-// Run immediately on start
+// Initial run
 runNewsFetcher();
