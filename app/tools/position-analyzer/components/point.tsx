@@ -10,7 +10,7 @@ interface PointProps {
 }
 
 export function Point({ index, value, isTop }: PointProps) {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: `point-${index}`,
   });
 
@@ -20,24 +20,34 @@ export function Point({ index, value, isTop }: PointProps) {
   return (
     <div
       ref={setNodeRef}
-      className={`relative h-full ${
-        index % 2 === 0 ? 'bg-point-dark' : 'bg-point-light'
-      } ${isTop ? 'triangle-down' : 'triangle-up'}`}
+      className={`
+        relative h-full 
+        ${index % 2 === 0 ? 'point-dark' : 'point-light'}
+        ${isTop ? 'triangle-down' : 'triangle-up'}
+        ${isOver ? 'opacity-70' : ''}
+      `}
     >
       <div 
-        className={`absolute inset-x-0 ${
-          isTop ? 'bottom-0' : 'top-0'
-        } flex flex-col items-center gap-[2px]`}
+        className={`
+          absolute inset-x-0 
+          ${isTop ? 'bottom-0' : 'top-0'}
+          flex flex-col items-center
+        `}
       >
         {Array.from({ length: Math.min(checkers, 5) }, (_, i) => (
           <Checker
             key={i}
-            id={`checker-${index}-${i}`}
+            id={`point-${index}-${i}`}
             isPlayer1={isPlayer1}
+            stackPosition={i}
           />
         ))}
         {checkers > 5 && (
-          <div className="text-white text-xs font-bold bg-black/50 px-1 rounded">
+          <div className={`
+            absolute ${isTop ? 'bottom-0' : 'top-0'} 
+            text-white text-xs font-bold bg-black/50 px-2 py-1 rounded-full
+            transform ${isTop ? 'translate-y-8' : '-translate-y-8'}
+          `}>
             +{checkers - 5}
           </div>
         )}
