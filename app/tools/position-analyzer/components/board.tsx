@@ -13,7 +13,7 @@ interface BoardProps {
 }
 
 export function Board({ position, onChange }: BoardProps) {
-  const [activeDragger, setActiveDragger] = useState<string | null>(null);
+  const [_activeDragger, setActiveDragger] = useState<string | null>(null);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveDragger(event.active.id as string);
