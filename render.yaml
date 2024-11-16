@@ -9,24 +9,33 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3000
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=512
     autoDeploy: true
-    # Add memory limit and scaling configuration
     scaling:
       minInstances: 1
       maxInstances: 1
     resources:
       limits:
-        memory: 512M # Set memory limit to 512MB
+        memory: 512M
+      requests:
+        memory: 256M
+        cpu: 0.1
 
-  # Background worker for news fetching
-  - type: cron
+  # Background worker for news fetching - run as a separate service with its own memory allocation
+  - type: worker
     name: backgammon-news-fetcher
-    schedule: "0 */6 * * *" # Run every 6 hours
     env: node
     buildCommand: npm install
-    startCommand: npm run fetch-news
+    startCommand: node scripts/start-fetcher.js
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=256
+    resources:
+      limits:
+        memory: 256M
+      requests:
+        memory: 128M
+        cpu: 0.1
