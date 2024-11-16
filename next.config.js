@@ -26,18 +26,26 @@ const nextConfig = {
   },
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: ['lucide-react']
+    optimizePackageImports: ['lucide-react'],
+    serverActions: {
+      bodySizeLimit: '2mb'
+    }
   },
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
   eslint: {
-    ignoreDuringBuilds: true
+    dirs: ['app', 'components', 'lib', 'scripts']
   },
   typescript: {
-    ignoreBuildErrors: true
+    ignoreBuildErrors: false
   },
   env: {
     NEXT_PUBLIC_MAX_NEWS_ITEMS: '50'
+  },
+  output: 'standalone',
+  generateEtags: true,
+  httpAgentOptions: {
+    keepAlive: true
   }
 }
