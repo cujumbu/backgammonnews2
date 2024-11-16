@@ -1,10 +1,6 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { CalendarIcon } from "lucide-react";
 import Image from "next/image";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CalendarIcon } from "lucide-react";
 import { NewsItem } from "@/lib/storage";
 
 export default function FeaturedNews() {
@@ -44,22 +40,20 @@ export default function FeaturedNews() {
     return (
       <section className="mb-12">
         <h2 className="mb-6 text-2xl font-bold">Featured Story</h2>
-        <Card className="overflow-hidden">
+        <div className="animate-pulse rounded-lg border">
           <div className="grid md:grid-cols-2">
-            <div className="relative aspect-video md:aspect-auto">
-              <Skeleton className="h-full w-full" />
-            </div>
+            <div className="aspect-video bg-gray-200 md:aspect-auto" />
             <div className="p-6">
-              <Skeleton className="mb-2 h-4 w-24" />
-              <Skeleton className="mb-3 h-8 w-3/4" />
-              <Skeleton className="mb-4 h-24 w-full" />
+              <div className="mb-2 h-4 w-24 bg-gray-200 rounded" />
+              <div className="mb-3 h-8 w-3/4 bg-gray-200 rounded" />
+              <div className="mb-4 h-24 w-full bg-gray-200 rounded" />
               <div className="flex items-center justify-between">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-4 w-24" />
+                <div className="h-4 w-32 bg-gray-200 rounded" />
+                <div className="h-4 w-24 bg-gray-200 rounded" />
               </div>
             </div>
           </div>
-        </Card>
+        </div>
       </section>
     );
   }
@@ -68,11 +62,11 @@ export default function FeaturedNews() {
     return (
       <section className="mb-12">
         <h2 className="mb-6 text-2xl font-bold">Featured Story</h2>
-        <Card className="overflow-hidden p-6">
-          <p className="text-muted-foreground">
+        <div className="rounded-lg border p-6">
+          <p className="text-gray-600">
             {error || 'No featured story available at the moment.'}
           </p>
-        </Card>
+        </div>
       </section>
     );
   }
@@ -80,7 +74,7 @@ export default function FeaturedNews() {
   return (
     <section className="mb-12">
       <h2 className="mb-6 text-2xl font-bold">Featured Story</h2>
-      <Card className="overflow-hidden">
+      <div className="overflow-hidden rounded-lg border">
         <div className="grid md:grid-cols-2">
           <div className="relative aspect-video md:aspect-auto">
             {article.image_url && (
@@ -94,16 +88,16 @@ export default function FeaturedNews() {
             )}
           </div>
           <div className="p-6">
-            <div className="mb-2 text-sm font-medium text-blue-600 dark:text-blue-400">
+            <div className="mb-2 text-sm font-medium text-blue-600">
               {article.category}
             </div>
             <h3 className="mb-3 text-2xl font-bold">{article.title}</h3>
-            <p className="mb-4 text-muted-foreground">
+            <p className="mb-4 text-gray-600">
               {article.content && article.content.length > 200
                 ? `${article.content.substring(0, 200)}...`
                 : article.content || 'No content available'}
             </p>
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div className="flex items-center justify-between text-sm text-gray-500">
               <div className="flex items-center">
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {new Date(article.published_at).toLocaleDateString()}
@@ -112,7 +106,7 @@ export default function FeaturedNews() {
             </div>
           </div>
         </div>
-      </Card>
+      </div>
     </section>
   );
 }
