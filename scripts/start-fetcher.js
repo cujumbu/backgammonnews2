@@ -1,12 +1,17 @@
-// ESM syntax for imports
+import { mkdir } from 'fs/promises';
+import { join } from 'path';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 import { spawn } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Run the TypeScript file using ts-node
+// Ensure data directory exists
+const dataDir = join(process.cwd(), 'data');
+await mkdir(dataDir, { recursive: true });
+
+// Run the TypeScript file using tsx
 const fetcher = spawn('npx', ['tsx', join(__dirname, 'news-fetcher.ts')], {
   stdio: 'inherit'
 });
