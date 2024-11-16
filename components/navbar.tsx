@@ -8,27 +8,27 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="border-b bg-background">
+    <nav className="border-b bg-white">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <DicesIcon className="h-8 w-8 text-primary" />
+              <DicesIcon className="h-8 w-8 text-blue-600" />
               <span className="text-xl font-bold">BackgammonNews</span>
             </Link>
           </div>
 
           <div className="hidden md:flex md:items-center md:space-x-6">
-            <Link href="/news" className="text-foreground/80 hover:text-foreground">
+            <Link href="/news" className="text-gray-700 hover:text-gray-900">
               News
             </Link>
-            <Link href="/tournaments" className="text-foreground/80 hover:text-foreground">
+            <Link href="/tournaments" className="text-gray-700 hover:text-gray-900">
               Tournaments
             </Link>
-            <Link href="/strategy" className="text-foreground/80 hover:text-foreground">
+            <Link href="/strategy" className="text-gray-700 hover:text-gray-900">
               Strategy
             </Link>
-            <Link href="/admin" className="text-foreground/80 hover:text-foreground">
+            <Link href="/admin" className="text-gray-700 hover:text-gray-900">
               Admin
             </Link>
           </div>
@@ -51,25 +51,25 @@ export default function Navbar() {
             <div className="space-y-4 px-2 pb-4 pt-2">
               <Link
                 href="/news"
-                className="block rounded-md px-3 py-2 text-foreground/80 hover:bg-accent hover:text-foreground"
+                className="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100"
               >
                 News
               </Link>
               <Link
                 href="/tournaments"
-                className="block rounded-md px-3 py-2 text-foreground/80 hover:bg-accent hover:text-foreground"
+                className="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100"
               >
                 Tournaments
               </Link>
               <Link
                 href="/strategy"
-                className="block rounded-md px-3 py-2 text-foreground/80 hover:bg-accent hover:text-foreground"
+                className="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100"
               >
                 Strategy
               </Link>
               <Link
                 href="/admin"
-                className="block rounded-md px-3 py-2 text-foreground/80 hover:bg-accent hover:text-foreground"
+                className="block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100"
               >
                 Admin
               </Link>
