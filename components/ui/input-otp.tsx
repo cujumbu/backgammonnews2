@@ -1,53 +1,63 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
+"use client";
+
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
 interface InputOTPProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  value: string;
-  maxLength?: number;
+  length?: number;
   onComplete?: (value: string) => void;
 }
 
-const InputOTP = React.forwardRef<HTMLInputElement, InputOTPProps>(
-  ({ className, maxLength = 6, value, onChange, onComplete, ...props }, ref) => {
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = e.target.value.replace(/[^0-9]/g, "").slice(0, maxLength);
-      onChange?.(e);
-      if (newValue.length === maxLength) {
-        onComplete?.(newValue);
-      }
-    };
+export function InputOTP({ 
+  className,
+  length = 6,
+  onComplete,
+  ...props 
+}: InputOTPProps) {
+  const [value, setValue] = React.useState('');
+  const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
-    return (
-      <div className="flex gap-2">
-        {[...Array(maxLength)].map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              "relative h-10 w-10 rounded-md border bg-transparent text-center text-base",
-              className
-            )}
-          >
-            <input
-              ref={i === 0 ? ref : undefined}
-              className="absolute inset-0 h-full w-full opacity-0"
-              type="text"
-              pattern="[0-9]*"
-              inputMode="numeric"
-              maxLength={maxLength}
-              value={value}
-              onChange={handleChange}
-              {...props}
-            />
-            <div className="pointer-events-none flex h-full items-center justify-center">
-              {value[i] || ""}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-);
+  React.useEffect(() => {
+    inputRefs.current = inputRefs.current.slice(0, length);
+  }, [length]);
 
-InputOTP.displayName = "InputOTP";
+  const handleChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value.slice(-1);
+    const newFullValue = value.slice(0, index) + newValue + value.slice(index + 1);
+    setValue(newFullValue);
 
-export { InputOTP };
+    if (newValue && index < length - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
+
+    if (newFullValue.length === length) {
+      onComplete?.(newFullValue);
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !value[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  return (
+    <div className={cn("flex gap-2", className)}>
+      {Array.from({ length }).map((_, i) => (
+        <input
+          key={i}
+          ref={el => inputRefs.current[i] = el}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]"
+          maxLength={1}
+          value={value[i] || ''}
+          onChange={e => handleChange(i, e)}
+          onKeyDown={e => handleKeyDown(i, e)}
+          className="h-10 w-10 rounded-md border border-input bg-background text-center text-lg"
+          {...props}
+        />
+      ))}
+    </div>
+  );
+}
