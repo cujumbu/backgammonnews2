@@ -16,13 +16,12 @@ export function Bar({ player, count }: BarProps) {
   return (
     <div
       ref={setNodeRef}
-      className="w-12 h-full bg-wood-dark rounded flex flex-col items-center justify-center"
+      className="w-8 h-full bg-wood-dark/80 rounded-sm flex flex-col items-center justify-center gap-1"
     >
       {Array.from({ length: Math.min(count, 3) }, (_, i) => (
         <Checker
           key={i}
-          pointIndex={-1}
-          checkerIndex={i}
+          id={`bar-${player}-${i}`}
           isPlayer1={player === 1}
         />
       ))}
