@@ -1,10 +1,24 @@
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
+import { mkdir } from 'fs/promises';
+import { join } from 'path';
+
+const DB_DIR = './data';
+const DB_PATH = join(DB_DIR, 'news.db');
 
 // Initialize database connection
 export async function getDb() {
+  // Ensure the data directory exists
+  try {
+    await mkdir(DB_DIR, { recursive: true });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
+      throw error;
+    }
+  }
+
   return open({
-    filename: './data/news.db',
+    filename: DB_PATH,
     driver: sqlite3.Database
   });
 }
@@ -28,6 +42,7 @@ export async function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_published_at ON news_items(published_at DESC);
     CREATE INDEX IF NOT EXISTS idx_category ON news_items(category);
+    CREATE INDEX IF NOT EXISTS idx_url ON news_items(url);
   `);
 
   return db;
@@ -78,9 +93,11 @@ export async function insertNewsItem(item: {
       item.category,
       item.published_at.toISOString()
     ]);
+    return true;
   } catch (error) {
-    if (!(error as any).message.includes('UNIQUE constraint failed')) {
-      throw error;
+    if ((error as Error).message.includes('UNIQUE constraint failed')) {
+      return false;
     }
+    throw error;
   }
 }
