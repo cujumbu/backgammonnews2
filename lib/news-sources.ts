@@ -6,14 +6,8 @@ export const RSS_FEEDS = [
   }
 ];
 
-export const REDDIT_SOURCES = [
-  {
-    subreddit: 'backgammon',
-    category: 'Community'
-  }
-];
-
-// Removed unreliable feeds (Chicago Point, BKGM)
+// Removed Reddit sources as they require authentication now
+export const REDDIT_SOURCES: any[] = [];
 
 export function categorizeContent(title: string, content: string): string {
   const keywords = {
