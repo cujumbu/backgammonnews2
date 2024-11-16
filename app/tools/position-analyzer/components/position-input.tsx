@@ -3,9 +3,10 @@ interface PositionInputProps {
   onChange: (value: string) => void;
   onAnalyze: () => void;
   error?: string | null;
+  debug?: string | null;
 }
 
-export function PositionInput({ value, onChange, onAnalyze, error }: PositionInputProps) {
+export function PositionInput({ value, onChange, onAnalyze, error, debug }: PositionInputProps) {
   return (
     <div className="mb-6">
       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -40,7 +41,16 @@ export function PositionInput({ value, onChange, onAnalyze, error }: PositionInp
 
       {error && (
         <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">
-          {error}
+          <p className="font-medium">Error:</p>
+          <p>{error}</p>
+          {debug && (
+            <details className="mt-2">
+              <summary className="cursor-pointer text-sm">Debug Information</summary>
+              <pre className="mt-2 text-xs overflow-x-auto whitespace-pre-wrap">
+                {debug}
+              </pre>
+            </details>
+          )}
         </div>
       )}
     </div>
