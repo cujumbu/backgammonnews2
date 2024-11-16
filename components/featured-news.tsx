@@ -40,8 +40,8 @@ export default function FeaturedNews() {
   if (loading) {
     return (
       <section className="mb-12">
-        <h2 className="mb-6 text-2xl font-bold">Featured Story</h2>
-        <div className="animate-pulse rounded-lg border">
+        <h2 className="text-2xl font-bold mb-6">Featured Story</h2>
+        <div className="animate-pulse glass-panel rounded-xl overflow-hidden">
           <div className="grid md:grid-cols-2">
             <div className="aspect-video bg-gray-200 md:aspect-auto" />
             <div className="p-6">
@@ -62,8 +62,8 @@ export default function FeaturedNews() {
   if (error || !article) {
     return (
       <section className="mb-12">
-        <h2 className="mb-6 text-2xl font-bold">Featured Story</h2>
-        <div className="rounded-lg border p-6">
+        <h2 className="text-2xl font-bold mb-6">Featured Story</h2>
+        <div className="glass-panel rounded-xl p-6">
           <p className="text-gray-600">
             {error || 'No featured story available at the moment.'}
           </p>
@@ -74,29 +74,31 @@ export default function FeaturedNews() {
 
   return (
     <section className="mb-12">
-      <h2 className="mb-6 text-2xl font-bold">Featured Story</h2>
-      <div className="overflow-hidden rounded-lg border">
+      <h2 className="text-2xl font-bold mb-6">Featured Story</h2>
+      <div className="glass-panel rounded-xl overflow-hidden group">
         <div className="grid md:grid-cols-2">
           <div className="relative aspect-video md:aspect-auto">
-            {article.image_url && (
+            {article.image_url ? (
               <Image
                 src={article.image_url}
                 alt={article.title}
                 fill
-                className="object-cover"
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
                 priority
               />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-500" />
             )}
           </div>
           <div className="p-6">
             <div className="mb-2 text-sm font-medium text-blue-600">
               {article.category}
             </div>
-            <h3 className="mb-3 text-2xl font-bold">{article.title}</h3>
-            <p className="mb-4 text-gray-600">
-              {article.content && article.content.length > 200
-                ? `${article.content.substring(0, 200)}...`
-                : article.content || 'No content available'}
+            <h3 className="mb-3 text-2xl font-bold group-hover:text-blue-600 transition-colors duration-200">
+              {article.title}
+            </h3>
+            <p className="mb-4 text-gray-600 line-clamp-3">
+              {article.content || 'No content available'}
             </p>
             <div className="flex items-center justify-between text-sm text-gray-500">
               <div className="flex items-center">
