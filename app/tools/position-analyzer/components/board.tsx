@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { DndContext, DragEndEvent, DragStartEvent, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
+import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { Point } from './point';
 import { Bar } from './bar';
 import { Off } from './off';
@@ -80,48 +81,67 @@ export function Board({ position, onChange }: BoardProps) {
   };
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="relative w-full max-w-4xl mx-auto aspect-[2/1] bg-wood-pattern rounded-lg p-4 shadow-xl">
-        <div className="absolute inset-0 grid grid-cols-12 gap-1 p-4">
-          {/* Points 13-24 (top) */}
-          <div className="col-span-12 grid grid-cols-12 gap-1 h-[45%]">
+    <DndContext 
+      sensors={sensors} 
+      onDragStart={handleDragStart} 
+      onDragEnd={handleDragEnd}
+      modifiers={[restrictToWindowEdges]}
+    >
+      <div className="relative w-full max-w-4xl mx-auto bg-wood-pattern rounded-lg p-6 shadow-xl">
+        <div className="aspect-[2/1] relative">
+          <div className="absolute inset-0 grid grid-cols-12 gap-1">
+            {/* Top row (points 13-24) */}
+            <div className="col-span-12 grid grid-cols-12 gap-1 h-[45%]">
+              {Array.from({ length: 12 }, (_, i) => (
+                <Point
+                  key={24 - i}
+                  index={24 - i}
+                  value={position.points[24 - i]}
+                  isTop
+                />
+              ))}
+            </div>
+
+            {/* Middle bar */}
+            <div className="col-span-12 flex justify-center items-center h-[10%] relative">
+              <div className="absolute left-4">
+                <Bar player={1} count={position.bar[0]} />
+              </div>
+              <div className="absolute right-4">
+                <Bar player={2} count={position.bar[1]} />
+              </div>
+            </div>
+
+            {/* Bottom row (points 1-12) */}
+            <div className="col-span-12 grid grid-cols-12 gap-1 h-[45%]">
+              {Array.from({ length: 12 }, (_, i) => (
+                <Point
+                  key={i + 1}
+                  index={i + 1}
+                  value={position.points[i + 1]}
+                  isTop={false}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Off areas */}
+          <div className="absolute -right-16 inset-y-0 w-12 flex flex-col justify-between">
+            <Off player={2} count={position.off[1]} />
+            <Off player={1} count={position.off[0]} />
+          </div>
+
+          {/* Point numbers */}
+          <div className="absolute -bottom-6 left-0 right-16 grid grid-cols-12 gap-1 text-xs text-center">
             {Array.from({ length: 12 }, (_, i) => (
-              <Point
-                key={24 - i}
-                index={24 - i}
-                value={position.points[24 - i]}
-                isTop
-              />
+              <div key={i + 1}>{i + 1}</div>
             ))}
           </div>
-
-          {/* Middle bar */}
-          <div className="col-span-12 flex justify-center items-center h-[10%] relative">
-            <div className="absolute left-0">
-              <Bar player={1} count={position.bar[0]} />
-            </div>
-            <div className="absolute right-0">
-              <Bar player={2} count={position.bar[1]} />
-            </div>
-          </div>
-
-          {/* Points 1-12 (bottom) */}
-          <div className="col-span-12 grid grid-cols-12 gap-1 h-[45%]">
+          <div className="absolute -top-6 left-0 right-16 grid grid-cols-12 gap-1 text-xs text-center">
             {Array.from({ length: 12 }, (_, i) => (
-              <Point
-                key={i + 1}
-                index={i + 1}
-                value={position.points[i + 1]}
-                isTop={false}
-              />
+              <div key={24 - i}>{24 - i}</div>
             ))}
           </div>
-        </div>
-
-        {/* Off areas */}
-        <div className="absolute -right-16 inset-y-0 w-12 flex flex-col justify-between">
-          <Off player={2} count={position.off[1]} />
-          <Off player={1} count={position.off[0]} />
         </div>
       </div>
     </DndContext>
