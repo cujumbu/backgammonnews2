@@ -11,10 +11,8 @@ export function GameControls({ onRoll, onReset, canRoll }: GameControlsProps) {
         onClick={onRoll}
         disabled={!canRoll}
         className={`
-          px-6 py-3 rounded-lg font-semibold text-white
-          ${canRoll 
-            ? 'bg-blue-600 hover:bg-blue-700' 
-            : 'bg-gray-400 cursor-not-allowed'}
+          glass-button
+          ${!canRoll && 'opacity-50 cursor-not-allowed hover:transform-none'}
         `}
       >
         Roll Dice
@@ -22,7 +20,12 @@ export function GameControls({ onRoll, onReset, canRoll }: GameControlsProps) {
       
       <button
         onClick={onReset}
-        className="px-6 py-3 rounded-lg font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300"
+        className="px-6 py-3 rounded-xl font-medium text-gray-700 
+                 bg-gradient-to-r from-gray-100 to-gray-200
+                 hover:from-gray-200 hover:to-gray-300
+                 transition-all duration-300 ease-out
+                 shadow-lg hover:shadow-xl
+                 hover:-translate-y-0.5"
       >
         New Game
       </button>
