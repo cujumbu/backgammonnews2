@@ -76,19 +76,24 @@ class NewsStorage {
 
   public async getAll(): Promise<NewsItem[]> {
     await this.ensureInitialized();
-    return Array.from(this.cache.values()) as NewsItem[];
+    const values = Array.from(this.cache.values());
+    return values.filter((item): item is NewsItem => item !== undefined);
   }
 
   public async getLatest(limit = 10): Promise<NewsItem[]> {
     await this.ensureInitialized();
-    return Array.from(this.cache.values())
+    const values = Array.from(this.cache.values());
+    const validItems = values.filter((item): item is NewsItem => item !== undefined);
+    return validItems
       .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
       .slice(0, Math.min(limit, MAX_ITEMS));
   }
 
   public async getFeatured(): Promise<NewsItem | null> {
     await this.ensureInitialized();
-    return Array.from(this.cache.values())
+    const values = Array.from(this.cache.values());
+    const validItems = values.filter((item): item is NewsItem => item !== undefined);
+    return validItems
       .filter(item => item.category === 'Tournaments')
       .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())[0] || null;
   }
@@ -110,7 +115,10 @@ class NewsStorage {
     }
 
     // Check if URL already exists
-    const exists = Array.from(this.cache.values()).some(existing => existing.url === item.url);
+    const values = Array.from(this.cache.values());
+    const validItems = values.filter((item): item is NewsItem => item !== undefined);
+    const exists = validItems.some(existing => existing.url === item.url);
+    
     if (!exists) {
       this.cache.set(newItem.id, validated.data);
       return true;
