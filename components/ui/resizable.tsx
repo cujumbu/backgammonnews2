@@ -2,7 +2,9 @@ import * as React from "react";
 import { GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface ResizableProps extends React.HTMLAttributes<HTMLDivElement> {
+type BaseProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'onResize'>;
+
+interface ResizableProps extends BaseProps {
   direction?: "horizontal" | "vertical";
   onResize?: (sizes: number[]) => void;
   defaultSizes?: number[];
