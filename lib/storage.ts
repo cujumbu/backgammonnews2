@@ -3,18 +3,19 @@ import { LRUCache } from 'lru-cache';
 
 const NewsItemSchema = z.object({
   id: z.number(),
-  title: z.string(),
-  content: z.string().optional(),
+  title: z.string().max(200),
+  content: z.string().max(1000).optional(),
   url: z.string().url(),
   image_url: z.string().url().optional(),
-  source: z.string(),
-  category: z.string(),
+  source: z.string().max(50),
+  category: z.string().max(50),
   published_at: z.string().datetime(),
 });
 
 export type NewsItem = z.infer<typeof NewsItemSchema>;
 
-const MAX_ITEMS = 100;
+const MAX_ITEMS = parseInt(process.env.NEXT_PUBLIC_MAX_NEWS_ITEMS || '50', 10);
+const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
 
 class NewsStorage {
   private static instance: NewsStorage;
@@ -25,12 +26,14 @@ class NewsStorage {
   private constructor() {
     this.cache = new LRUCache({
       max: MAX_ITEMS,
-      maxSize: 5000, // Limit total size
-      sizeCalculation: (value, key) => {
-        // Rough estimation of item size in bytes
-        return JSON.stringify(value).length;
+      maxSize: 1000 * 1000, // 1MB total size limit
+      sizeCalculation: (value) => {
+        return Buffer.byteLength(JSON.stringify(value), 'utf8');
       },
-      ttl: 1000 * 60 * 60 * 24, // 24 hour TTL
+      ttl: CACHE_TTL,
+      updateAgeOnGet: true,
+      updateAgeOnHas: true,
+      allowStale: false
     });
     this.initPromise = this.initializeWithSampleData();
   }
@@ -56,20 +59,12 @@ class NewsStorage {
         source: "USBGF",
         category: "Tournaments",
         published_at: now.toISOString()
-      },
-      {
-        id: 2,
-        title: "Advanced Opening Strategies",
-        content: "Learn about the most effective opening moves in backgammon.",
-        url: "https://example.com/opening-strategies",
-        image_url: "https://images.unsplash.com/photo-1611159063981-b8c8c4301869",
-        source: "Backgammon Experts",
-        category: "Strategy",
-        published_at: new Date(now.getTime() - 86400000).toISOString()
       }
     ];
 
-    sampleData.forEach(item => this.cache.set(item.id, item));
+    for (const item of sampleData) {
+      this.cache.set(item.id, item);
+    }
     this.initialized = true;
   }
 
@@ -88,7 +83,7 @@ class NewsStorage {
     await this.ensureInitialized();
     return Array.from(this.cache.values())
       .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
-      .slice(0, limit);
+      .slice(0, Math.min(limit, MAX_ITEMS));
   }
 
   public async getFeatured(): Promise<NewsItem | null> {
@@ -104,7 +99,8 @@ class NewsStorage {
     const newItem = {
       ...item,
       id: Date.now(),
-      content: item.content || '',
+      content: item.content ? item.content.substring(0, 1000) : '',
+      title: item.title.substring(0, 200)
     };
 
     const validated = NewsItemSchema.safeParse(newItem);
@@ -121,12 +117,18 @@ class NewsStorage {
     }
     return false;
   }
+
+  public async clear(): Promise<void> {
+    this.cache.clear();
+    this.initialized = false;
+    await this.initializeWithSampleData();
+  }
 }
 
 export const newsStorage = NewsStorage.getInstance();
 
 export async function getLatestNews(limit = 10): Promise<NewsItem[]> {
-  return newsStorage.getLatest(limit);
+  return newsStorage.getLatest(Math.min(limit, MAX_ITEMS));
 }
 
 export async function getFeaturedNews(): Promise<NewsItem | null> {
@@ -137,6 +139,6 @@ export async function addNewsItem(item: Omit<NewsItem, 'id'>): Promise<boolean> 
   return newsStorage.add(item);
 }
 
-export async function initializeStorage(): Promise<void> {
-  await newsStorage.getAll();
+export async function clearStorage(): Promise<void> {
+  return newsStorage.clear();
 }
