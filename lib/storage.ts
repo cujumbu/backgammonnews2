@@ -24,7 +24,7 @@ class NewsStorage {
   private initPromise: Promise<void> | null = null;
 
   private constructor() {
-    this.cache = new LRUCache({
+    this.cache = new LRUCache<number, NewsItem>({
       max: MAX_ITEMS,
       maxSize: 1000 * 1000, // 1MB total size limit
       sizeCalculation: (value) => {
@@ -49,7 +49,7 @@ class NewsStorage {
     if (this.initialized) return;
 
     const now = new Date().toISOString();
-    const sampleData = [
+    const sampleData: NewsItem[] = [
       {
         id: 1,
         title: "Nordic Open 2024 Announced",
@@ -76,7 +76,7 @@ class NewsStorage {
 
   public async getAll(): Promise<NewsItem[]> {
     await this.ensureInitialized();
-    return Array.from(this.cache.values());
+    return Array.from(this.cache.values()) as NewsItem[];
   }
 
   public async getLatest(limit = 10): Promise<NewsItem[]> {
