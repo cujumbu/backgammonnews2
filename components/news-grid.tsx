@@ -35,29 +35,25 @@ export default function NewsGrid({ limit = 10 }: NewsGridProps) {
 
   if (loading) {
     return (
-      <div>
-        <div className="grid gap-6">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="animate-pulse overflow-hidden rounded-lg border">
-              <div className="p-6">
-                <div className="mb-2 h-4 w-24 bg-gray-200 rounded" />
-                <div className="mb-3 h-6 w-3/4 bg-gray-200 rounded" />
-                <div className="mb-4 h-20 w-full bg-gray-200 rounded" />
-                <div className="flex items-center justify-between">
-                  <div className="h-4 w-32 bg-gray-200 rounded" />
-                  <div className="h-4 w-24 bg-gray-200 rounded" />
-                </div>
-              </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="animate-pulse glass-panel p-6 rounded-xl">
+            <div className="mb-2 h-4 w-24 bg-gray-200 rounded" />
+            <div className="mb-3 h-6 w-3/4 bg-gray-200 rounded" />
+            <div className="mb-4 h-20 w-full bg-gray-200 rounded" />
+            <div className="flex items-center justify-between">
+              <div className="h-4 w-32 bg-gray-200 rounded" />
+              <div className="h-4 w-24 bg-gray-200 rounded" />
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     );
   }
 
   if (error || !news.length) {
     return (
-      <div className="rounded-lg border p-6">
+      <div className="glass-panel p-6 rounded-xl">
         <p className="text-gray-600">
           {error || 'No news articles available.'}
         </p>
@@ -66,9 +62,12 @@ export default function NewsGrid({ limit = 10 }: NewsGridProps) {
   }
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {news.map((item) => (
-        <article key={item.id} className="overflow-hidden rounded-lg border hover:shadow-lg transition-shadow">
+        <article 
+          key={item.id} 
+          className="glass-panel hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group"
+        >
           <a 
             href={item.url} 
             target="_blank" 
@@ -78,13 +77,11 @@ export default function NewsGrid({ limit = 10 }: NewsGridProps) {
             <div className="mb-2 text-sm font-medium text-blue-600">
               {item.category}
             </div>
-            <h3 className="mb-3 text-xl font-bold hover:text-blue-600">
+            <h3 className="mb-3 text-xl font-bold group-hover:text-blue-600 transition-colors duration-200">
               {item.title}
             </h3>
-            <p className="mb-4 text-sm text-gray-600">
-              {item.content && item.content.length > 150
-                ? `${item.content.substring(0, 150)}...`
-                : item.content || 'No content available'}
+            <p className="mb-4 text-sm text-gray-600 line-clamp-3">
+              {item.content || 'No content available'}
             </p>
             <div className="flex items-center justify-between text-sm text-gray-500">
               <div className="flex items-center">
