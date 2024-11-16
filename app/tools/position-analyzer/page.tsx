@@ -1,11 +1,9 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { AnalysisCard } from './components/analysis-card';
 import { PositionInput } from './components/position-input';
-import { analyzePosition } from './lib/analyzer';
-import { parsePosition } from './lib/parser';
-import type { PositionAnalysis } from './lib/types';
+import { analyzePosition, parsePosition, type PositionAnalysis } from './lib';
 
 export default function PositionAnalyzerPage() {
   const [position, setPosition] = useState('');
