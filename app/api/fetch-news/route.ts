@@ -3,8 +3,9 @@ import Parser from 'rss-parser';
 import { RSS_FEEDS, REDDIT_SOURCES, categorizeContent } from '@/lib/news-sources';
 import { addNewsItem } from '@/lib/storage';
 
+// Remove edge runtime directive to use Node.js runtime instead
 const parser = new Parser({
-  timeout: 5000, // 5 second timeout
+  timeout: 5000,
   maxRedirects: 3,
   headers: {
     'User-Agent': 'BackgammonNews/1.0 (https://backgammon-news.com)',
@@ -20,12 +21,11 @@ async function fetchRSSFeeds() {
       const feedContent = await parser.parseURL(feed.url);
       let addedCount = 0;
       
-      for (const item of feedContent.items?.slice(0, 10) || []) { // Limit to 10 most recent items
+      for (const item of feedContent.items?.slice(0, 10) || []) {
         if (!item.title || !item.link) continue;
         
         try {
           const content = item.contentSnippet || item.content || '';
-          // Truncate content if it's too long
           const truncatedContent = content.length > 1000 ? content.substring(0, 1000) + '...' : content;
           
           await addNewsItem({
@@ -65,7 +65,7 @@ async function fetchRedditPosts() {
             'User-Agent': 'BackgammonNews/1.0 (https://backgammon-news.com)',
             'Accept': 'application/json'
           },
-          next: { revalidate: 3600 } // Cache for 1 hour
+          cache: 'no-store'
         }
       );
       
@@ -76,18 +76,16 @@ async function fetchRedditPosts() {
       const data = await response.json();
       let addedCount = 0;
       
-      for (const post of data.data?.children?.slice(0, 5) || []) { // Limit to 5 posts
+      for (const post of data.data?.children?.slice(0, 5) || []) {
         const { title, selftext, permalink, created_utc } = post.data;
         if (!title) continue;
         
-        // Skip posts that are just links to other subreddits
         if (permalink.includes('/r/') && permalink !== `/r/${source.subreddit}/`) continue;
         
         const fullRedditUrl = `https://reddit.com${permalink}`;
         const category = categorizeContent(title, selftext);
         
         try {
-          // Truncate selftext if it's too long
           const truncatedContent = selftext.length > 1000 ? selftext.substring(0, 1000) + '...' : selftext;
           
           await addNewsItem({
@@ -121,20 +119,16 @@ function extractImageUrl(content: string): string | undefined {
 }
 
 function extractImageFromRedditPost(post: any): string | undefined {
-  // Try to get the highest quality image from preview
   if (post.preview?.images?.[0]?.source?.url) {
     return post.preview.images[0].source.url.replace(/&amp;/g, '&');
   }
   
-  // Fallback to thumbnail if available and valid
   if (post.thumbnail && post.thumbnail !== 'self' && post.thumbnail !== 'default') {
     return post.thumbnail;
   }
   
   return undefined;
 }
-
-export const runtime = 'edge'; // Use edge runtime for better performance
 
 export async function GET() {
   try {
