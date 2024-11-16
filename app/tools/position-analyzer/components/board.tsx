@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { DndContext, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragStartEvent, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
 import { Point } from './point';
 import { Bar } from './bar';
 import { Off } from './off';
@@ -14,6 +14,14 @@ interface BoardProps {
 
 export function Board({ position, onChange }: BoardProps) {
   const [_activeDragger, setActiveDragger] = useState<string | null>(null);
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveDragger(event.active.id as string);
@@ -28,43 +36,43 @@ export function Board({ position, onChange }: BoardProps) {
     const fromId = active.id as string;
     const toId = over.id as string;
 
-    // Parse the IDs to determine source and destination
-    const [fromType, fromIndex] = fromId.split('-');
-    const [toType, toIndex] = toId.split('-');
+    // Create a deep copy of the position
+    const newPosition = JSON.parse(JSON.stringify(position)) as Position;
 
-    const newPosition = { ...position };
+    // Handle moving checkers
+    const [fromType, fromPoint] = fromId.split('-');
+    const [toType, toPoint] = toId.split('-');
 
-    // Remove checker from source
+    // Remove from source
     if (fromType === 'point') {
-      const pointIndex = parseInt(fromIndex);
-      const value = newPosition.points[pointIndex];
-      if (value > 0) {
+      const pointIndex = parseInt(fromPoint);
+      if (newPosition.points[pointIndex] > 0) {
         newPosition.points[pointIndex]--;
-      } else if (value < 0) {
+      } else if (newPosition.points[pointIndex] < 0) {
         newPosition.points[pointIndex]++;
       }
     } else if (fromType === 'bar') {
-      const playerIndex = parseInt(fromIndex) - 1;
-      newPosition.bar[playerIndex]--;
-    } else if (fromType === 'off') {
-      const playerIndex = parseInt(fromIndex) - 1;
-      newPosition.off[playerIndex]--;
+      const playerIndex = parseInt(fromPoint) - 1;
+      if (newPosition.bar[playerIndex] > 0) {
+        newPosition.bar[playerIndex]--;
+      }
     }
 
-    // Add checker to destination
+    // Add to destination
     if (toType === 'point') {
-      const pointIndex = parseInt(toIndex);
+      const pointIndex = parseInt(toPoint);
       const currentValue = newPosition.points[pointIndex];
-      if (currentValue >= 0) {
-        newPosition.points[pointIndex]++;
-      } else {
-        newPosition.points[pointIndex]--;
+      const isPlayer1 = fromType === 'bar' ? parseInt(fromPoint) === 1 :
+                       fromType === 'point' && newPosition.points[parseInt(fromPoint)] >= 0;
+      
+      if (currentValue === 0 || (currentValue > 0) === isPlayer1) {
+        newPosition.points[pointIndex] += isPlayer1 ? 1 : -1;
       }
     } else if (toType === 'bar') {
-      const playerIndex = parseInt(toIndex) - 1;
+      const playerIndex = parseInt(toPoint) - 1;
       newPosition.bar[playerIndex]++;
     } else if (toType === 'off') {
-      const playerIndex = parseInt(toIndex) - 1;
+      const playerIndex = parseInt(toPoint) - 1;
       newPosition.off[playerIndex]++;
     }
 
@@ -72,11 +80,11 @@ export function Board({ position, onChange }: BoardProps) {
   };
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="relative w-full max-w-3xl mx-auto aspect-[2/1] bg-wood-pattern rounded-lg p-4">
-        <div className="absolute inset-0 grid grid-cols-12 gap-2 p-4">
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className="relative w-full max-w-4xl mx-auto aspect-[2/1] bg-wood-pattern rounded-lg p-4 shadow-xl">
+        <div className="absolute inset-0 grid grid-cols-12 gap-1 p-4">
           {/* Points 13-24 (top) */}
-          <div className="col-span-12 grid grid-cols-12 gap-2 h-[45%]">
+          <div className="col-span-12 grid grid-cols-12 gap-1 h-[45%]">
             {Array.from({ length: 12 }, (_, i) => (
               <Point
                 key={24 - i}
@@ -88,13 +96,17 @@ export function Board({ position, onChange }: BoardProps) {
           </div>
 
           {/* Middle bar */}
-          <div className="col-span-12 flex justify-between items-center h-[10%]">
-            <Bar player={1} count={position.bar[0]} />
-            <Bar player={2} count={position.bar[1]} />
+          <div className="col-span-12 flex justify-center items-center h-[10%] relative">
+            <div className="absolute left-0">
+              <Bar player={1} count={position.bar[0]} />
+            </div>
+            <div className="absolute right-0">
+              <Bar player={2} count={position.bar[1]} />
+            </div>
           </div>
 
           {/* Points 1-12 (bottom) */}
-          <div className="col-span-12 grid grid-cols-12 gap-2 h-[45%]">
+          <div className="col-span-12 grid grid-cols-12 gap-1 h-[45%]">
             {Array.from({ length: 12 }, (_, i) => (
               <Point
                 key={i + 1}
