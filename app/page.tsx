@@ -1,7 +1,6 @@
 import FeaturedNews from '@/components/featured-news';
 import NewsGrid from '@/components/news-grid';
 import TournamentUpdates from '@/components/tournament-updates';
-import { Button } from '@/components/ui/button';
 import { DicesIcon } from 'lucide-react';
 
 export default function Home() {
@@ -17,10 +16,13 @@ export default function Home() {
               Your premier source for backgammon news, tournament updates, strategy
               articles, and community insights from around the world.
             </p>
-            <Button variant="secondary" size="lg">
+            <a 
+              href="/tools/analyzer"
+              className="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50"
+            >
               <DicesIcon className="mr-2 h-5 w-5" />
               Try Our Position Analyzer
-            </Button>
+            </a>
           </div>
           <div className="absolute -right-20 -top-20 h-64 w-64 rotate-12 opacity-20">
             <DicesIcon className="h-full w-full" />
