@@ -9,22 +9,33 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [details, setDetails] = useState<any>(null);
 
   async function refreshNews() {
     setIsLoading(true);
     setStatus("idle");
     setMessage("");
+    setDetails(null);
 
     try {
       const response = await fetch("/api/fetch-news");
-      const data = await response.json();
-
+      
       if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch news");
+        const text = await response.text();
+        let errorMessage;
+        try {
+          const data = JSON.parse(text);
+          errorMessage = data.message || 'Failed to fetch news';
+        } catch {
+          errorMessage = text || 'Failed to fetch news';
+        }
+        throw new Error(errorMessage);
       }
 
+      const data = await response.json();
       setStatus("success");
-      setMessage("News successfully updated");
+      setMessage(data.message || "News successfully updated");
+      setDetails(data.results);
     } catch (error) {
       setStatus("error");
       setMessage(error.message);
@@ -40,7 +51,7 @@ export default function AdminPage() {
       <Card className="p-6">
         <h2 className="mb-4 text-xl font-semibold">News Management</h2>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mb-4">
           <Button
             onClick={refreshNews}
             disabled={isLoading}
@@ -64,6 +75,32 @@ export default function AdminPage() {
             </div>
           )}
         </div>
+
+        {details && (
+          <div className="mt-4 space-y-4">
+            <div>
+              <h3 className="font-medium mb-2">RSS Feeds:</h3>
+              <ul className="space-y-1 text-sm">
+                {details.rss.map((result: any, i: number) => (
+                  <li key={i} className={result.error ? "text-red-500" : "text-green-500"}>
+                    {result.source}: {result.error ? result.error : `${result.count} items fetched`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-medium mb-2">Reddit:</h3>
+              <ul className="space-y-1 text-sm">
+                {details.reddit.map((result: any, i: number) => (
+                  <li key={i} className={result.error ? "text-red-500" : "text-green-500"}>
+                    {result.source}: {result.error ? result.error : `${result.count} items fetched`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );
