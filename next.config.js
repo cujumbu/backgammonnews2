@@ -18,14 +18,26 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'preview.redd.it',
       }
-    ]
+    ],
+    minimumCacheTTL: 60,
+    deviceSizes: [640, 750, 828, 1080, 1200],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    formats: ['image/webp']
   },
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['lucide-react']
+  },
+  compress: true,
+  poweredByHeader: false,
+  reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true
   },
   typescript: {
     ignoreBuildErrors: true
+  },
+  env: {
+    NEXT_PUBLIC_MAX_NEWS_ITEMS: '50'
   }
 }
-
-module.exports = nextConfig
