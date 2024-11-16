@@ -26,10 +26,11 @@ const nextConfig = {
   },
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: ['lucide-react'],
-    serverActions: {
-      bodySizeLimit: '2mb'
-    }
+    optimizePackageImports: ['lucide-react']
+  },
+  webpack: (config) => {
+    config.resolve.fallback = { fs: false, path: false };
+    return config;
   },
   compress: true,
   poweredByHeader: false,
@@ -43,9 +44,5 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_MAX_NEWS_ITEMS: '50'
   },
-  output: 'standalone',
-  generateEtags: true,
-  httpAgentOptions: {
-    keepAlive: true
-  }
+  output: 'standalone'
 }
