@@ -1,14 +1,12 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Navbar from '@/components/navbar';
-import Footer from '@/components/footer';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'BackgammonNews.com - Your Daily Source for Backgammon Updates',
-  description: 'Latest backgammon news, tournament results, strategy articles, and community updates from around the world.',
+  title: 'BackgammonNews.com',
+  description: 'Latest backgammon news and updates',
 };
 
 export default function RootLayout({
@@ -19,10 +17,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="flex min-h-screen flex-col">
-          <Navbar />
-          <main className="flex-grow">{children}</main>
-          <Footer />
+        <div className="container mx-auto px-4 py-8">
+          {children}
         </div>
       </body>
     </html>
