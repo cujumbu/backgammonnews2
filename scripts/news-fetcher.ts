@@ -4,6 +4,7 @@ import * as cheerio from 'cheerio';
 import fetch from 'cross-fetch';
 import { RSS_FEEDS, REDDIT_SOURCES, categorizeContent } from '../lib/news-sources';
 import { addNewsItem } from '../lib/storage';
+import { parseAndValidateDate } from '../lib/utils';
 
 const parser = new Parser({
   timeout: 5000,
@@ -30,6 +31,8 @@ async function fetchRSSFeeds() {
         const truncatedContent = content.length > 1000 ? 
           content.substring(0, 1000) + '...' : content;
         
+        const published_at = parseAndValidateDate(item.pubDate || new Date());
+        
         const success = await addNewsItem({
           title: item.title,
           content: truncatedContent,
@@ -37,7 +40,7 @@ async function fetchRSSFeeds() {
           image_url: extractImageUrl(item.content || ''),
           source: feed.name,
           category: categorizeContent(item.title, content),
-          published_at: new Date(item.pubDate || Date.now()).toISOString()
+          published_at
         });
 
         if (success) addedCount++;
@@ -63,7 +66,7 @@ async function fetchRedditPosts() {
         `https://www.reddit.com/r/${source.subreddit}/hot.json?limit=10`,
         {
           headers: {
-            'User-Agent': 'BackgammonNews/1.0',
+            'User-Agent': 'BackgammonNews/1.0 (StackBlitz)',
             'Accept': 'application/json'
           }
         }
@@ -83,6 +86,8 @@ async function fetchRedditPosts() {
         const truncatedContent = selftext.length > 1000 ? 
           selftext.substring(0, 1000) + '...' : selftext;
         
+        const published_at = parseAndValidateDate(created_utc * 1000);
+        
         const success = await addNewsItem({
           title,
           content: truncatedContent,
@@ -90,7 +95,7 @@ async function fetchRedditPosts() {
           image_url: extractImageFromRedditPost(post.data),
           source: `Reddit - r/${source.subreddit}`,
           category: categorizeContent(title, selftext),
-          published_at: new Date(created_utc * 1000).toISOString()
+          published_at
         });
 
         if (success) addedCount++;
