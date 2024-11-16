@@ -6,6 +6,7 @@ import { addNewsItem } from '@/lib/storage';
 const parser = new Parser();
 
 async function fetchRSSFeeds() {
+  const results = [];
   for (const feed of RSS_FEEDS) {
     try {
       console.log(`Fetching from ${feed.name}...`);
@@ -22,13 +23,17 @@ async function fetchRSSFeeds() {
           published_at: item.pubDate || new Date().toISOString()
         });
       }
+      results.push({ source: feed.name, count: feedContent.items.length });
     } catch (error) {
       console.error(`Error fetching ${feed.name}:`, error);
+      results.push({ source: feed.name, error: error.message });
     }
   }
+  return results;
 }
 
 async function fetchRedditPosts() {
+  const results = [];
   for (const source of REDDIT_SOURCES) {
     try {
       console.log(`Fetching from Reddit r/${source.subreddit}...`);
@@ -46,6 +51,7 @@ async function fetchRedditPosts() {
       }
       
       const data = await response.json();
+      let addedCount = 0;
       
       for (const post of data.data.children) {
         const { title, selftext, permalink, created_utc } = post.data;
@@ -62,11 +68,15 @@ async function fetchRedditPosts() {
           category,
           published_at: new Date(created_utc * 1000).toISOString()
         });
+        addedCount++;
       }
+      results.push({ source: `Reddit - r/${source.subreddit}`, count: addedCount });
     } catch (error) {
       console.error(`Error fetching Reddit posts from r/${source.subreddit}:`, error);
+      results.push({ source: `Reddit - r/${source.subreddit}`, error: error.message });
     }
   }
+  return results;
 }
 
 function extractImageUrl(content: string): string | undefined {
@@ -75,17 +85,28 @@ function extractImageUrl(content: string): string | undefined {
   return imgMatch?.[1];
 }
 
-// This endpoint will be called by a CRON service
 export async function GET() {
   try {
-    await Promise.all([
+    const [rssResults, redditResults] = await Promise.all([
       fetchRSSFeeds(),
       fetchRedditPosts()
     ]);
     
-    return NextResponse.json({ status: 'success' });
+    return NextResponse.json({
+      status: 'success',
+      message: 'News fetched successfully',
+      results: {
+        rss: rssResults,
+        reddit: redditResults
+      }
+    });
   } catch (error) {
     console.error('Error in news fetcher:', error);
-    return NextResponse.json({ status: 'error', message: error.message }, { status: 500 });
+    return NextResponse.json({ 
+      status: 'error', 
+      message: error.message || 'An error occurred while fetching news'
+    }, { 
+      status: 500 
+    });
   }
 }
