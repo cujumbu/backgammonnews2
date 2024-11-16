@@ -12,8 +12,8 @@ interface NewsResponse {
   message: string;
   results?: {
     rss: FetchResult[];
-    reddit: FetchResult[];
   };
+  error?: string;
 }
 
 export default function AdminPage() {
@@ -21,35 +21,39 @@ export default function AdminPage() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
   const [details, setDetails] = useState<NewsResponse["results"] | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string>("");
 
   async function refreshNews() {
     setIsLoading(true);
     setStatus("idle");
     setMessage("");
     setDetails(null);
+    setErrorDetails("");
 
     try {
       const response = await fetch("/api/fetch-news");
+      const text = await response.text();
+      
+      let data: NewsResponse;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error('Failed to parse response:', text);
+        throw new Error(`Invalid response format: ${text}`);
+      }
       
       if (!response.ok) {
-        const text = await response.text();
-        let errorMessage: string;
-        try {
-          const data = JSON.parse(text);
-          errorMessage = data.message || 'Failed to fetch news';
-        } catch {
-          errorMessage = text || 'Failed to fetch news';
-        }
-        throw new Error(errorMessage);
+        throw new Error(data.error || data.message || 'Failed to fetch news');
       }
 
-      const data: NewsResponse = await response.json();
       setStatus("success");
       setMessage(data.message || "News successfully updated");
       setDetails(data.results);
     } catch (error) {
+      console.error('Error refreshing news:', error);
       setStatus("error");
       setMessage(error instanceof Error ? error.message : 'An error occurred');
+      setErrorDetails(error instanceof Error ? error.stack || '' : '');
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +70,7 @@ export default function AdminPage() {
           <button
             onClick={refreshNews}
             disabled={isLoading}
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 hover:bg-blue-700"
           >
             {isLoading ? "Fetching..." : "Refresh News"}
           </button>
@@ -78,8 +82,15 @@ export default function AdminPage() {
           )}
 
           {status === "error" && (
-            <div className="mt-2 text-red-600">
-              {message}
+            <div className="mt-2">
+              <div className="text-red-600 font-medium">
+                {message}
+              </div>
+              {errorDetails && (
+                <pre className="mt-2 p-2 bg-red-50 text-red-800 text-sm overflow-x-auto">
+                  {errorDetails}
+                </pre>
+              )}
             </div>
           )}
         </div>
@@ -88,21 +99,21 @@ export default function AdminPage() {
           <div className="mt-4 space-y-4">
             <div>
               <h3 className="font-medium mb-2">RSS Feeds:</h3>
-              <ul className="space-y-1 text-sm">
+              <ul className="space-y-1">
                 {details.rss.map((result, i) => (
-                  <li key={i} className={result.error ? "text-red-500" : "text-green-500"}>
-                    {result.source}: {result.error ? result.error : `${result.count} items fetched`}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-medium mb-2">Reddit:</h3>
-              <ul className="space-y-1 text-sm">
-                {details.reddit.map((result, i) => (
-                  <li key={i} className={result.error ? "text-red-500" : "text-green-500"}>
-                    {result.source}: {result.error ? result.error : `${result.count} items fetched`}
+                  <li 
+                    key={i} 
+                    className={`p-2 rounded ${
+                      result.error 
+                        ? "bg-red-50 text-red-700" 
+                        : "bg-green-50 text-green-700"
+                    }`}
+                  >
+                    <span className="font-medium">{result.source}:</span>{" "}
+                    {result.error 
+                      ? result.error 
+                      : `${result.count} items fetched`
+                    }
                   </li>
                 ))}
               </ul>
