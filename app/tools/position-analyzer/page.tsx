@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { parsePosition } from './lib/parser';
 import { analyzePosition } from './lib/analyzer';
-import { PositionAnalysis } from './lib/types';
+import type { PositionAnalysis } from './lib/types';
 import { AnalysisCard } from './components/analysis-card';
 import { PositionInput } from './components/position-input';
 
