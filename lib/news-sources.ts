@@ -23,30 +23,6 @@ export const REDDIT_SOURCES = [
   }
 ];
 
-export const YOUTUBE_CHANNELS = [
-  {
-    id: 'UCxyCJt3NLP6dprDL_YFu_0g', // Mochy's channel
-    name: 'Mochy\'s Backgammon',
-    category: 'Strategy'
-  },
-  {
-    id: 'UC7lDtk4rQrXwBtfRYvCL7jw', // XG Backgammon
-    name: 'XG Backgammon',
-    category: 'Strategy'
-  }
-];
-
-export const TWITTER_ACCOUNTS = [
-  {
-    username: 'USBGF',
-    category: 'Official'
-  },
-  {
-    username: 'BackgammonGalaxy',
-    category: 'Community'
-  }
-];
-
 export function categorizeContent(title: string, content: string): string {
   const keywords = {
     Tournaments: [
@@ -55,7 +31,7 @@ export function categorizeContent(title: string, content: string): string {
     ],
     Strategy: [
       'strategy', 'tip', 'guide', 'analysis', 'position', 'cube', 'doubling',
-      'opening', 'endgame', 'bearing off', 'checker play', 'probability'
+      'opening', 'endgame', 'bearing off', 'checker play'
     ],
     News: [
       'announce', 'update', 'release', 'launch', 'introducing', 'new',
@@ -64,10 +40,6 @@ export function categorizeContent(title: string, content: string): string {
     Community: [
       'community', 'player', 'club', 'social', 'interview', 'profile',
       'spotlight', 'story', 'feature'
-    ],
-    Results: [
-      'winner', 'won', 'champion', 'victory', 'defeated', 'score',
-      'result', 'standings', 'leaderboard'
     ]
   };
 
