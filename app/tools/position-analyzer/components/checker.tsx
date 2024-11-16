@@ -3,14 +3,13 @@
 import { useDraggable } from '@dnd-kit/core';
 
 interface CheckerProps {
-  pointIndex: number;
-  checkerIndex: number;
+  id: string;
   isPlayer1: boolean;
 }
 
-export function Checker({ pointIndex, checkerIndex, isPlayer1 }: CheckerProps) {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: `checker-${pointIndex}-${checkerIndex}`,
+export function Checker({ id, isPlayer1 }: CheckerProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id,
   });
 
   const style = transform ? {
@@ -23,8 +22,13 @@ export function Checker({ pointIndex, checkerIndex, isPlayer1 }: CheckerProps) {
       style={style}
       {...listeners}
       {...attributes}
-      className={`w-8 h-8 rounded-full border-2 cursor-move
-        ${isPlayer1 ? 'bg-white border-gray-300' : 'bg-black border-gray-700'}
+      className={`
+        w-6 h-6 rounded-full border-2 cursor-move transition-transform
+        ${isPlayer1 
+          ? 'bg-white border-gray-300 hover:bg-gray-100' 
+          : 'bg-black border-gray-700 hover:bg-gray-900'
+        }
+        ${isDragging ? 'z-50 scale-110' : 'z-10'}
       `}
     />
   );
