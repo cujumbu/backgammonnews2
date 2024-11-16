@@ -24,12 +24,16 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
     formats: ['image/webp']
   },
-  experimental: {
-    optimizeCss: true,
-    optimizePackageImports: ['lucide-react']
-  },
   webpack: (config) => {
     config.resolve.fallback = { fs: false, path: false };
+    
+    // Add source maps for better error tracking
+    if (!config.optimization) {
+      config.optimization = {};
+    }
+    config.optimization.minimize = false;
+    config.optimization.minimizer = [];
+    
     return config;
   },
   compress: true,
