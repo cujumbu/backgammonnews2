@@ -56,30 +56,30 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold">Admin Dashboard</h1>
-
-      <div className="rounded-lg border p-6">
-        <h2 className="mb-4 text-xl font-semibold">News Management</h2>
+    <div>
+      <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
+      
+      <div className="p-4 border rounded">
+        <h2 className="text-xl font-semibold mb-4">News Management</h2>
         
-        <div className="flex items-center gap-4 mb-4">
+        <div className="mb-4">
           <button
             onClick={refreshNews}
             disabled={isLoading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           >
             {isLoading ? "Fetching..." : "Refresh News"}
           </button>
 
           {status === "success" && (
-            <div className="flex items-center gap-2 text-green-600">
-              <span>{message}</span>
+            <div className="mt-2 text-green-600">
+              {message}
             </div>
           )}
 
           {status === "error" && (
-            <div className="flex items-center gap-2 text-red-600">
-              <span>{message}</span>
+            <div className="mt-2 text-red-600">
+              {message}
             </div>
           )}
         </div>
