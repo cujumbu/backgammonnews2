@@ -5,24 +5,16 @@ export const RSS_FEEDS = [
     category: 'Official'
   },
   {
-    url: 'https://www.gammonvillage.com/feed/',
-    name: 'GammonVillage',
-    category: 'News'
-  },
-  {
-    url: 'https://www.worldbackgammonfederation.org/feed/',
-    name: 'WBF',
+    url: 'https://ukbgf.com/blog/feed/',
+    name: 'UKBGF',
     category: 'Official'
   },
   {
-    url: 'https://www.backgammongalaxy.com/feed',
-    name: 'Backgammon Galaxy',
-    category: 'Community'
+    url: 'https://wbgf.info/news/feed/',
+    name: 'WBGF',
+    category: 'Official'
   }
 ];
-
-// Removed Reddit sources as they require authentication now
-export const REDDIT_SOURCES: any[] = [];
 
 export function categorizeContent(title: string, content: string): string {
   const keywords = {
