@@ -1,13 +1,15 @@
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import Database from 'better-sqlite3';
 import { mkdir } from 'fs/promises';
 import { join } from 'path';
 
 const DB_DIR = './data';
 const DB_PATH = join(DB_DIR, 'news.db');
 
-// Initialize database connection
-export async function getDb() {
+let db: Database.Database | null = null;
+
+export async function initDb() {
+  if (db) return db;
+
   // Ensure the data directory exists
   try {
     await mkdir(DB_DIR, { recursive: true });
@@ -17,17 +19,9 @@ export async function getDb() {
     }
   }
 
-  return open({
-    filename: DB_PATH,
-    driver: sqlite3.Database
-  });
-}
+  db = new Database(DB_PATH, { verbose: console.log });
 
-// Initialize database schema
-export async function initDb() {
-  const db = await getDb();
-  
-  await db.exec(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS news_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
@@ -48,28 +42,25 @@ export async function initDb() {
   return db;
 }
 
-// Get latest news items
 export async function getLatestNews(limit = 10) {
-  const db = await getDb();
-  return db.all(`
+  const db = await initDb();
+  return db.prepare(`
     SELECT * FROM news_items 
     ORDER BY published_at DESC 
     LIMIT ?
-  `, limit);
+  `).all(limit);
 }
 
-// Get featured news item
 export async function getFeaturedNews() {
-  const db = await getDb();
-  return db.get(`
+  const db = await initDb();
+  return db.prepare(`
     SELECT * FROM news_items 
     WHERE category = 'Tournaments' 
     ORDER BY published_at DESC 
     LIMIT 1
-  `);
+  `).get();
 }
 
-// Insert new news item
 export async function insertNewsItem(item: {
   title: string;
   content: string;
@@ -77,22 +68,22 @@ export async function insertNewsItem(item: {
   image_url?: string;
   source: string;
   category: string;
-  published_at: Date;
+  published_at: string;
 }) {
-  const db = await getDb();
+  const db = await initDb();
   try {
-    await db.run(`
+    db.prepare(`
       INSERT INTO news_items (title, content, url, image_url, source, category, published_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-    `, [
+    `).run(
       item.title,
       item.content,
       item.url,
       item.image_url,
       item.source,
       item.category,
-      item.published_at.toISOString()
-    ]);
+      item.published_at
+    );
     return true;
   } catch (error) {
     if ((error as Error).message.includes('UNIQUE constraint failed')) {
