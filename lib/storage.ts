@@ -14,7 +14,7 @@ const NewsItemSchema = z.object({
 
 export type NewsItem = z.infer<typeof NewsItemSchema>;
 
-const MAX_ITEMS = parseInt(process.env.NEXT_PUBLIC_MAX_NEWS_ITEMS || '50', 10);
+const MAX_ITEMS = 50;
 const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
 
 class NewsStorage {
@@ -114,7 +114,6 @@ class NewsStorage {
       return false;
     }
 
-    // Check if URL already exists
     const values = Array.from(this.cache.values());
     const validItems = values.filter((item): item is NewsItem => item !== undefined);
     const exists = validItems.some(existing => existing.url === item.url);
