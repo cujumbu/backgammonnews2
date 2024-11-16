@@ -1,9 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { RefreshCcw, CheckCircle, XCircle } from "lucide-react";
-import { Card } from "@/components/ui/card";
 
 interface FetchResult {
   source: string;
@@ -62,29 +59,26 @@ export default function AdminPage() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-8 text-3xl font-bold">Admin Dashboard</h1>
 
-      <Card className="p-6">
+      <div className="rounded-lg border p-6">
         <h2 className="mb-4 text-xl font-semibold">News Management</h2>
         
         <div className="flex items-center gap-4 mb-4">
-          <Button
+          <button
             onClick={refreshNews}
             disabled={isLoading}
-            className="gap-2"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
           >
-            <RefreshCcw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
             {isLoading ? "Fetching..." : "Refresh News"}
-          </Button>
+          </button>
 
           {status === "success" && (
             <div className="flex items-center gap-2 text-green-600">
-              <CheckCircle className="h-5 w-5" />
               <span>{message}</span>
             </div>
           )}
 
           {status === "error" && (
             <div className="flex items-center gap-2 text-red-600">
-              <XCircle className="h-5 w-5" />
               <span>{message}</span>
             </div>
           )}
@@ -115,7 +109,7 @@ export default function AdminPage() {
             </div>
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 }
