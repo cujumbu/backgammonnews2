@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { DicesIcon, MenuIcon, X } from "lucide-react";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,7 +12,7 @@ export default function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <DicesIcon className="h-8 w-8 text-blue-600" />
+              <span className="text-2xl">🎲</span>
               <span className="text-xl font-bold">BackgammonNews</span>
             </Link>
           </div>
@@ -38,11 +37,7 @@ export default function Navbar() {
             className="md:hidden p-2"
             aria-label="Toggle menu"
           >
-            {isOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <MenuIcon className="h-6 w-6" />
-            )}
+            <span className="text-2xl">{isOpen ? '✕' : '☰'}</span>
           </button>
         </div>
 
