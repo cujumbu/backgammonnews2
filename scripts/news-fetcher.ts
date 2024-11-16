@@ -1,3 +1,5 @@
+/// <reference types="node-cron" />
+
 import cron from 'node-cron';
 import Parser from 'rss-parser';
 import * as cheerio from 'cheerio';
