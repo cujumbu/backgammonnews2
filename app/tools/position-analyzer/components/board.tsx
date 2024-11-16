@@ -14,7 +14,7 @@ interface BoardProps {
 }
 
 export function Board({ position, onChange }: BoardProps) {
-  const [_activeDragger, setActiveDragger] = useState<string | null>(null);
+  const [draggedChecker, setDraggedChecker] = useState<string | null>(null);
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -25,11 +25,11 @@ export function Board({ position, onChange }: BoardProps) {
   );
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveDragger(event.active.id as string);
+    setDraggedChecker(event.active.id as string);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    setActiveDragger(null);
+    setDraggedChecker(null);
     const { active, over } = event;
 
     if (!over) return;
@@ -98,6 +98,7 @@ export function Board({ position, onChange }: BoardProps) {
                   index={24 - i}
                   value={position.points[24 - i]}
                   isTop
+                  isDragging={draggedChecker?.startsWith(`point-${24 - i}`)}
                 />
               ))}
             </div>
@@ -105,10 +106,10 @@ export function Board({ position, onChange }: BoardProps) {
             {/* Middle bar */}
             <div className="col-span-12 flex justify-center items-center h-[10%] relative">
               <div className="absolute left-4">
-                <Bar player={1} count={position.bar[0]} />
+                <Bar player={1} count={position.bar[0]} isDragging={draggedChecker?.startsWith('bar-1')} />
               </div>
               <div className="absolute right-4">
-                <Bar player={2} count={position.bar[1]} />
+                <Bar player={2} count={position.bar[1]} isDragging={draggedChecker?.startsWith('bar-2')} />
               </div>
             </div>
 
@@ -120,6 +121,7 @@ export function Board({ position, onChange }: BoardProps) {
                   index={i + 1}
                   value={position.points[i + 1]}
                   isTop={false}
+                  isDragging={draggedChecker?.startsWith(`point-${i + 1}`)}
                 />
               ))}
             </div>
@@ -127,8 +129,16 @@ export function Board({ position, onChange }: BoardProps) {
 
           {/* Off areas */}
           <div className="absolute -right-16 inset-y-0 w-12 flex flex-col justify-between">
-            <Off player={2} count={position.off[1]} />
-            <Off player={1} count={position.off[0]} />
+            <Off 
+              player={2} 
+              count={position.off[1]} 
+              isDragging={draggedChecker?.startsWith('off-2')} 
+            />
+            <Off 
+              player={1} 
+              count={position.off[0]} 
+              isDragging={draggedChecker?.startsWith('off-1')} 
+            />
           </div>
 
           {/* Point numbers */}
