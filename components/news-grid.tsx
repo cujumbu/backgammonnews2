@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { NewsItem } from "@/lib/storage";
 
-export default function NewsGrid() {
+interface NewsGridProps {
+  limit?: number;
+}
+
+export default function NewsGrid({ limit = 10 }: NewsGridProps) {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +15,7 @@ export default function NewsGrid() {
   useEffect(() => {
     async function fetchNews() {
       try {
-        const response = await fetch('/api/news?limit=10');
+        const response = await fetch(`/api/news?limit=${limit}`);
         if (!response.ok) {
           throw new Error('Failed to fetch news');
         }
@@ -28,7 +31,7 @@ export default function NewsGrid() {
     }
 
     fetchNews();
-  }, []);
+  }, [limit]);
 
   if (loading) {
     return (
@@ -65,12 +68,19 @@ export default function NewsGrid() {
   return (
     <div className="grid gap-6">
       {news.map((item) => (
-        <div key={item.id} className="overflow-hidden rounded-lg border">
-          <div className="p-6">
+        <article key={item.id} className="overflow-hidden rounded-lg border hover:shadow-lg transition-shadow">
+          <a 
+            href={item.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="block p-6"
+          >
             <div className="mb-2 text-sm font-medium text-blue-600">
               {item.category}
             </div>
-            <h3 className="mb-3 text-xl font-bold">{item.title}</h3>
+            <h3 className="mb-3 text-xl font-bold hover:text-blue-600">
+              {item.title}
+            </h3>
             <p className="mb-4 text-sm text-gray-600">
               {item.content && item.content.length > 150
                 ? `${item.content.substring(0, 150)}...`
@@ -83,8 +93,8 @@ export default function NewsGrid() {
               </div>
               <span>{item.source}</span>
             </div>
-          </div>
-        </div>
+          </a>
+        </article>
       ))}
     </div>
   );
