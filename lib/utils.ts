@@ -1,4 +1,4 @@
-import { clsx, type ClassValue } from "clsx";
+import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -13,9 +13,13 @@ export function formatDate(date: string | Date) {
   });
 }
 
+interface CustomRequestInit extends RequestInit {
+  timeout?: number;
+}
+
 export async function fetchWithTimeout(
   url: string,
-  options: RequestInit & { timeout?: number } = {}
+  options: CustomRequestInit = {}
 ) {
   const { timeout = 8000, ...fetchOptions } = options;
 
