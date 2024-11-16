@@ -6,8 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "fetch-news": "tsx scripts/news-fetcher.ts"
+    "lint": "next lint --fix",
+    "fetch-news": "tsx scripts/news-fetcher.ts",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -71,8 +72,11 @@
   },
   "devDependencies": {
     "@types/node-cron": "^3.0.11",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.56.0",
-    "eslint-config-next": "^14.1.0"
+    "eslint-config-next": "^14.1.0",
+    "eslint-plugin-react": "^7.33.2"
   },
   "engines": {
     "node": ">=18.0.0"
