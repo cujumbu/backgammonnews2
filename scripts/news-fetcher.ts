@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import Parser from 'rss-parser';
 import * as cheerio from 'cheerio';
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 import { RSS_FEEDS, REDDIT_SOURCES, categorizeContent } from '../lib/news-sources';
 import { addNewsItem } from '../lib/storage';
 
@@ -30,22 +30,26 @@ async function fetchRSSFeeds() {
         const truncatedContent = content.length > 1000 ? 
           content.substring(0, 1000) + '...' : content;
         
-        await addNewsItem({
+        const success = await addNewsItem({
           title: item.title,
           content: truncatedContent,
           url: item.link,
           image_url: extractImageUrl(item.content || ''),
           source: feed.name,
           category: categorizeContent(item.title, content),
-          published_at: item.pubDate || new Date().toISOString()
+          published_at: new Date(item.pubDate || Date.now())
         });
-        addedCount++;
+
+        if (success) addedCount++;
       }
       
       results.push({ source: feed.name, count: addedCount });
     } catch (error) {
       console.error(`Error fetching ${feed.name}:`, error);
-      results.push({ source: feed.name, error: error.message });
+      results.push({ 
+        source: feed.name, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
     }
   }
   return results;
@@ -79,22 +83,26 @@ async function fetchRedditPosts() {
         const truncatedContent = selftext.length > 1000 ? 
           selftext.substring(0, 1000) + '...' : selftext;
         
-        await addNewsItem({
+        const success = await addNewsItem({
           title,
           content: truncatedContent,
           url: `https://reddit.com${permalink}`,
           image_url: extractImageFromRedditPost(post.data),
           source: `Reddit - r/${source.subreddit}`,
           category: categorizeContent(title, selftext),
-          published_at: new Date(created_utc * 1000).toISOString()
+          published_at: new Date(created_utc * 1000)
         });
-        addedCount++;
+
+        if (success) addedCount++;
       }
       
       results.push({ source: `Reddit - r/${source.subreddit}`, count: addedCount });
     } catch (error) {
       console.error(`Error fetching Reddit r/${source.subreddit}:`, error);
-      results.push({ source: `Reddit - r/${source.subreddit}`, error: error.message });
+      results.push({ 
+        source: `Reddit - r/${source.subreddit}`, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
     }
   }
   return results;
@@ -134,8 +142,14 @@ async function runNewsFetcher() {
       rss: rssResults,
       reddit: redditResults
     });
+
+    return {
+      rss: rssResults,
+      reddit: redditResults
+    };
   } catch (error) {
     console.error('Error in news fetcher:', error);
+    throw error;
   } finally {
     isRunning = false;
   }
