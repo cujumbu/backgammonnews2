@@ -1,26 +1,21 @@
 "use client";
 
 import { useState } from 'react';
-import { analyzePosition } from 'gnubg-position';
-
-interface PositionAnalysis {
-  equity: number;
-  winSingle: number;
-  winGammon: number;
-  winBackgammon: number;
-  loseSingle: number;
-  loseGammon: number;
-  loseBackgammon: number;
-}
+import { parsePosition } from '@/lib/position-analyzer/parser';
+import { analyzePosition } from '@/lib/position-analyzer/analyzer';
+import { PositionAnalysis } from '@/lib/position-analyzer/types';
+import { AnalysisCard } from './components/analysis-card';
+import { PositionInput } from './components/position-input';
 
 export default function PositionAnalyzer() {
-  const [position, setPosition] = useState('');
+  const [positionStr, setPositionStr] = useState('');
   const [analysis, setAnalysis] = useState<PositionAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleAnalyze = () => {
     try {
       setError(null);
+      const position = parsePosition(positionStr);
       const result = analyzePosition(position);
       setAnalysis(result);
     } catch (err) {
@@ -30,103 +25,175 @@ export default function PositionAnalyzer() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Position Analyzer</h1>
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">Advanced Position Analyzer</h1>
       
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Enter Position (GNU Backgammon Format)
-        </label>
-        <textarea
-          value={position}
-          onChange={(e) => setPosition(e.target.value)}
-          className="w-full h-32 p-3 border rounded-md"
-          placeholder="Example: 4HPwATDgc/ABMA:0:0:1:00:0:0:0:0:10"
-        />
-        <p className="mt-2 text-sm text-gray-500">
-          Enter a position in GNU Backgammon format to analyze winning probabilities and equity.
-        </p>
-      </div>
-
-      <button
-        onClick={handleAnalyze}
-        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-      >
-        Analyze Position
-      </button>
-
-      {error && (
-        <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">
-          {error}
-        </div>
-      )}
+      <PositionInput
+        value={positionStr}
+        onChange={setPositionStr}
+        onAnalyze={handleAnalyze}
+        error={error}
+      />
 
       {analysis && (
-        <div className="mt-6">
-          <h2 className="text-xl font-semibold mb-4">Analysis Results</h2>
+        <div className="mt-6 space-y-6">
+          <h2 className="text-xl font-semibold">Analysis Results</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-4 bg-white rounded-lg shadow">
-              <h3 className="text-lg font-medium mb-3">Equity</h3>
-              <p className="text-3xl font-bold text-blue-600">
-                {analysis.equity.toFixed(3)}
-              </p>
-            </div>
-
-            <div className="p-4 bg-white rounded-lg shadow">
-              <h3 className="text-lg font-medium mb-3">Win Probabilities</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnalysisCard title="Pip Count">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span>Single:</span>
-                  <span className="font-medium">{(analysis.winSingle * 100).toFixed(1)}%</span>
+                  <span>Player 1:</span>
+                  <span className="font-medium">{analysis.pipCount.player1}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Gammon:</span>
-                  <span className="font-medium">{(analysis.winGammon * 100).toFixed(1)}%</span>
+                  <span>Player 2:</span>
+                  <span className="font-medium">{analysis.pipCount.player2}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Backgammon:</span>
-                  <span className="font-medium">{(analysis.winBackgammon * 100).toFixed(1)}%</span>
+                <div className="flex justify-between text-blue-600">
+                  <span>Difference:</span>
+                  <span className="font-medium">{analysis.pipCount.difference}</span>
                 </div>
               </div>
-            </div>
+            </AnalysisCard>
 
-            <div className="p-4 bg-white rounded-lg shadow">
-              <h3 className="text-lg font-medium mb-3">Loss Probabilities</h3>
+            <AnalysisCard title="Position Strength">
+              <div className="space-y-2">
+                {Object.entries(analysis.strength).map(([key, value]) => (
+                  <div key={key} className="flex justify-between">
+                    <span className="capitalize">{key}:</span>
+                    <div className="flex items-center">
+                      <div className="w-24 h-2 bg-gray-200 rounded mr-2">
+                        <div
+                          className="h-full bg-blue-600 rounded"
+                          style={{ width: `${value * 100}%` }}
+                        />
+                      </div>
+                      <span className="font-medium">{(value * 100).toFixed(0)}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </AnalysisCard>
+
+            <AnalysisCard title="Blockade Analysis">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span>Single:</span>
-                  <span className="font-medium">{(analysis.loseSingle * 100).toFixed(1)}%</span>
+                  <span>P1 Blocks:</span>
+                  <span className="font-medium">{analysis.blockade.player1Blocks}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Gammon:</span>
-                  <span className="font-medium">{(analysis.loseGammon * 100).toFixed(1)}%</span>
+                  <span>P2 Blocks:</span>
+                  <span className="font-medium">{analysis.blockade.player2Blocks}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Backgammon:</span>
-                  <span className="font-medium">{(analysis.loseBackgammon * 100).toFixed(1)}%</span>
+                  <span>P1 Prime:</span>
+                  <span className="font-medium">{analysis.blockade.player1PrimeLength}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>P2 Prime:</span>
+                  <span className="font-medium">{analysis.blockade.player2PrimeLength}</span>
                 </div>
               </div>
-            </div>
+            </AnalysisCard>
 
-            <div className="p-4 bg-white rounded-lg shadow">
-              <h3 className="text-lg font-medium mb-3">Total Probabilities</h3>
+            <AnalysisCard title="Blot Analysis">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span>Win:</span>
-                  <span className="font-medium text-green-600">
-                    {((analysis.winSingle + analysis.winGammon + analysis.winBackgammon) * 100).toFixed(1)}%
+                  <span>P1 Blots:</span>
+                  <span className="font-medium">{analysis.blots.player1Blots}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>P2 Blots:</span>
+                  <span className="font-medium">{analysis.blots.player2Blots}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>P1 Direct Shots:</span>
+                  <span className="font-medium">{analysis.blots.player1DirectShots}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>P2 Direct Shots:</span>
+                  <span className="font-medium">{analysis.blots.player2DirectShots}</span>
+                </div>
+              </div>
+            </AnalysisCard>
+
+            <AnalysisCard title="Winning Chances">
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span>Win:</span>
+                    <span className="font-medium text-green-600">
+                      {(analysis.winProbability * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-200 rounded">
+                    <div
+                      className="h-full bg-green-600 rounded"
+                      style={{ width: `${analysis.winProbability * 100}%` }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span>Gammon:</span>
+                    <span className="font-medium text-yellow-600">
+                      {(analysis.gammonProbability * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-200 rounded">
+                    <div
+                      className="h-full bg-yellow-600 rounded"
+                      style={{ width: `${analysis.gammonProbability * 100}%` }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span>Backgammon:</span>
+                    <span className="font-medium text-red-600">
+                      {(analysis.backgammonProbability * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-200 rounded">
+                    <div
+                      className="h-full bg-red-600 rounded"
+                      style={{ width: `${analysis.backgammonProbability * 100}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </AnalysisCard>
+
+            <AnalysisCard title="Cube Action">
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span>Equity:</span>
+                  <span className={`font-bold ${
+                    analysis.equity > 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {analysis.equity.toFixed(3)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Lose:</span>
-                  <span className="font-medium text-red-600">
-                    {((analysis.loseSingle + analysis.loseGammon + analysis.loseBackgammon) * 100).toFixed(1)}%
+                  <span>Market Position:</span>
+                  <span className={`font-medium ${
+                    analysis.marketPosition ? 'text-green-600' : 'text-yellow-600'
+                  }`}>
+                    {analysis.marketPosition ? 'Yes' : 'No'}
                   </span>
                 </div>
               </div>
-            </div>
+            </AnalysisCard>
           </div>
+
+          <AnalysisCard title="Recommendations">
+            <ul className="space-y-2 list-disc list-inside">
+              {analysis.recommendations.map((rec, index) => (
+                <li key={index} className="text-gray-700">{rec}</li>
+              ))}
+            </ul>
+          </AnalysisCard>
         </div>
       )}
     </div>
